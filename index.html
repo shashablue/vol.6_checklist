@@ -312,7 +312,7 @@
       <!-- 音声ボタンと初期化ボタンを横並びに配置 -->
       <div class="header-controls">
         <button id="voiceToggleBtn" class="filter-btn active">音声: ON</button>
-        <button id="returnBtn" class="filter-btn" style="border-color: var(--accent-purple); color: #c084fc;">帰還</button>
+        <button id="returnBtn" class="filter-btn" style="border-color: var(--accent-purple); color: #c084fc;">🚀 帰還</button>
         <button id="resetBtn" class="filter-btn" style="border-color: var(--accent-alert); color: var(--accent-alert);">巡回初期化</button>
       </div>
     </div>
@@ -621,7 +621,7 @@ voiceToggleBtn.addEventListener('click', () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
 });
-// ★「帰還」ボタンのクリックイベント（正しく喋る処理）
+// ★「帰還」ボタン処理（画面表示 ＋ 10%刻みの音声コメント）
 if (returnBtn) {
       returnBtn.addEventListener('click', () => {
         const total = boothMasterData.length;
@@ -632,17 +632,34 @@ if (returnBtn) {
 
         if (visited === 0) {
           message = "作戦開始前ですね。1つも巡回していません。ご安全に！";
+        } else if (rate < 10) {
+          message = `お疲れ様です。達成率は${rate}%です。まずは1箇所目、第一歩を踏み出しましたね！`;
+        } else if (rate < 20) {
+          message = `お疲れ様です。達成率は${rate}%です。順調なスタートです！`;
         } else if (rate < 30) {
-          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。まだまだこれからですね！`;
+          message = `お疲れ様です。達成率は${rate}%です。徐々にエンジンがかかってきました！`;
+        } else if (rate < 40) {
+          message = `お疲れ様です。達成率は${rate}%です。順調にチェックが進んでいます。`;
+        } else if (rate < 50) {
+          message = `お疲れ様です。達成率は${rate}%です。もうすぐ折り返し地点ですね！`;
+        } else if (rate < 60) {
+          message = `お疲れ様です。達成率は${rate}%です。半分を突破しました！この調子です。`;
         } else if (rate < 70) {
-          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。順調なペースで巡回が進んでいます。`;
+          message = `お疲れ様です。達成率は${rate}%です。後半戦も良いペースで巡回できています。`;
+        } else if (rate < 80) {
+          message = `お疲れ様です。達成率は${rate}%です。かなり巡回が進みましたね！`;
+        } else if (rate < 90) {
+          message = `お疲れ様です。達成率は${rate}%です。ゴールが見えてきました！`;
         } else if (rate < 100) {
-          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。あと少しでコンプリートです！`;
+          message = `お疲れ様です。達成率は${rate}%です。残りあとわずか、コンプリート目前です！`;
         } else {
           message = `素晴らしい！全${total}件の巡回を完了しました！本日のミッション完全達成です。お疲れ様でした！`;
         }
 
-        // 音声再生を実行
+        // 1. 画面上にダイアログを表示
+        alert(`【巡回状況リポート】\n全${total}件中 ${visited}件確認（達成率: ${rate}%）\n\n${message}`);
+
+        // 2. 音声で読み上げ
         speak(message);
       });
     }
