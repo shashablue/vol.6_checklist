@@ -332,6 +332,25 @@
       border-color: var(--accent-success);
     }
 
+  /* メモ入力欄のスタイルを追加 */
+  .booth-memo {
+      width: 100%;
+      margin-top: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      padding: 6px;
+      resize: vertical;
+      min-height: 48px;
+      outline: none;
+    }
+
+    .booth-memo:focus {
+      border-color: var(--accent-cyan);
+    }
+
     /* モーダル表示 */
     .report-modal-overlay {
       position: fixed;
@@ -897,7 +916,9 @@
     ];
 
     const STORAGE_KEY = 'GEN_AI_EXPO_CHECKED_BOOTHS_V3';
+    const MEMO_STORAGE_KEY = 'GEN_AI_EXPO_BOOTH_MEMOS_V1';
     let checkedBoothIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+    let boothMemos = JSON.parse(localStorage.getItem(MEMO_STORAGE_KEY) || '{}');
     let currentFilter = 'all';
     let searchQuery = '';
 
@@ -1074,6 +1095,16 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checkedBoothIds)));
+      localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(boothMemos));
+    }
+
+    function saveMemo(itemKey, memoText) {
+      if (memoText.trim() === '') {
+        delete boothMemos[itemKey];
+      } else {
+        boothMemos[itemKey] = memoText;
+      }
+      saveState();
     }
 
     function toggleBooth(id, name) {
@@ -1128,6 +1159,7 @@
       filteredBooths.forEach(booth => {
         const itemKey = `${booth.id}_${booth.name}`;
         const isChecked = checkedBoothIds.has(itemKey);
+        const memoText = boothMemos[itemKey] || '';
         const safeName = booth.name.replace(/'/g, "\\'");
         const tagsText = booth.tags && booth.tags.length > 0 ? booth.tags.join(', ') : booth.category;
 
@@ -1141,11 +1173,19 @@
             </div>
             <div class="booth-name" title="${booth.name}">${booth.name}</div>
             <div class="booth-desc" title="${tagsText}">${tagsText}</div>
+            <textarea class="booth-memo" maxlength="100" placeholder="メモ（100文字まで）">${memoText}</textarea>
           </div>
           <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
             ${isChecked ? '巡回済' : '巡回する'}
           </button>
         `;
+
+        // メモ変更時の自動保存
+        const memoInput = card.querySelector('.booth-memo');
+        memoInput.addEventListener('input', (e) => {
+          saveMemo(itemKey, e.target.value);
+        });
+
         boothListEl.appendChild(card);
       });
     }
@@ -1199,14 +1239,18 @@
       if (e.target === resetModal) resetModal.style.display = 'none';
     });
 
+// 「初期化する」実行ボタン
     confirmResetBtn.addEventListener('click', () => {
       checkedBoothIds.clear();
+      boothMemos = {};
       saveState();
       updateCounter();
       renderBooths();
       speak('巡回データを初期化しました。');
-      resetModal.style.display = 'none';
-    });
+
+      // 完了メッセージに切り替えて閉じる準備
+     resetModal.style.display = 'none';
+      });
 
     updateCounter();
     renderBooths();
