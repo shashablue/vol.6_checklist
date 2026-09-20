@@ -351,6 +351,28 @@
       border-color: var(--accent-cyan);
     }
 
+    /* お気に入り（★）ボタンのスタイル */
+    .fav-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 2px 6px;
+      transition: transform 0.15s ease, color 0.15s ease;
+      line-height: 1;
+    }
+
+    .fav-btn.active {
+      color: var(--accent-amber);
+      text-shadow: 0 0 8px rgba(255, 183, 3, 0.6);
+    }
+
+    .fav-btn:active {
+      transform: scale(1.3);
+    }
+
+
     /* モーダル表示 */
     .report-modal-overlay {
       position: fixed;
@@ -518,6 +540,15 @@
       box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4) !important;
       transition: transform 0.08s ease, box-shadow 0.08s ease;
     }
+
+    /* TOPボタンや検索クリアボタンが押された時の発光アニメーション */
+.filter-btn.flash-active {
+  background-color: var(--accent-cyan) !important;
+  color: #000 !important;
+  box-shadow: 0 0 12px var(--accent-cyan);
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+
   </style>
 </head>
 <body>
@@ -547,13 +578,12 @@
 
   <!-- フィルターと検索バーを横並びにするための囲み要素を追加 -->
     <div class="header-bottom-row">
-      <!-- 絞り込みフィルター -->
-      <div class="filter-container" id="filterContainer">
-        <button class="filter-btn active" data-filter="all">全出展者</button>
-        <button class="filter-btn" data-filter="unvisited">未巡回のみ</button>
-        <button class="filter-btn" id="scrollTopBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">▲ TOP</button>
-        <button class="filter-btn" id="clearSearchBtn">検索クリア</button>
-      </div>
+<!-- 絞り込みフィルター -->
+<div class="filter-container" id="filterContainer">
+  <button class="filter-btn active" id="toggleDisplayBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">表示: すべて</button>
+  <button class="filter-btn" id="scrollTopBtn">▲ TOP</button>
+  <button class="filter-btn" id="clearSearchBtn">検索クリア</button>
+</div>
 
       <!-- 検索バー -->
       <div class="search-container">
@@ -917,8 +947,10 @@
 
     const STORAGE_KEY = 'GEN_AI_EXPO_CHECKED_BOOTHS_V3';
     const MEMO_STORAGE_KEY = 'GEN_AI_EXPO_BOOTH_MEMOS_V1';
+    const FAV_STORAGE_KEY = 'GEN_AI_EXPO_BOOTH_FAVS_V1';
     let checkedBoothIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
     let boothMemos = JSON.parse(localStorage.getItem(MEMO_STORAGE_KEY) || '{}');
+    let favBoothIds = new Set(JSON.parse(localStorage.getItem(FAV_STORAGE_KEY) || '[]'));
     let currentFilter = 'all';
     let searchQuery = '';
 
@@ -1096,6 +1128,18 @@
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checkedBoothIds)));
       localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(boothMemos));
+      localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(Array.from(favBoothIds)));
+    }
+
+    function toggleFav(id, name) {
+      const key = `${id}_${name}`;
+      if (favBoothIds.has(key)) {
+        favBoothIds.delete(key);
+      } else {
+        favBoothIds.add(key);
+      }
+      saveState();
+      renderBooths();
     }
 
     function saveMemo(itemKey, memoText) {
@@ -1159,6 +1203,7 @@
       filteredBooths.forEach(booth => {
         const itemKey = `${booth.id}_${booth.name}`;
         const isChecked = checkedBoothIds.has(itemKey);
+        const isFav = favBoothIds.has(itemKey);
         const memoText = boothMemos[itemKey] || '';
         const safeName = booth.name.replace(/'/g, "\\'");
         const tagsText = booth.tags && booth.tags.length > 0 ? booth.tags.join(', ') : booth.category;
@@ -1170,6 +1215,9 @@
           <div class="booth-info">
             <div class="booth-header">
               <span class="booth-id">${booth.id}</span>
+              <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${booth.id}', '${safeName}')">
+                ${isFav ? '★' : '☆'}
+              </button>
             </div>
             <div class="booth-name" title="${booth.name}">${booth.name}</div>
             <div class="booth-desc" title="${tagsText}">${tagsText}</div>
@@ -1240,9 +1288,10 @@
     });
 
 // 「初期化する」実行ボタン
-    confirmResetBtn.addEventListener('click', () => {
+confirmResetBtn.addEventListener('click', () => {
       checkedBoothIds.clear();
       boothMemos = {};
+      favBoothIds.clear();
       saveState();
       updateCounter();
       renderBooths();
@@ -1255,12 +1304,57 @@
     updateCounter();
     renderBooths();
 
-    const scrollTopBtn = document.getElementById('scrollTopBtn');
+// TOPスクロール機能（押下時に一瞬光る処理を追加）
+const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
       scrollTopBtn.addEventListener('click', () => {
+        // 画面最上部へスムーズスクロール
         window.scrollTo({
           top: 0,
           behavior: 'smooth'
+        });
+
+        // 押したことが分かるように一瞬光らせる（0.2秒後にクラス除去）
+        scrollTopBtn.classList.add('flash-active');
+        setTimeout(() => {
+          scrollTopBtn.classList.remove('flash-active');
+        }, 200);
+      });
+    }
+
+    // 表示切替ボタンの制御機能（すべて -> 未巡回 -> 巡回済み -> お気に入り）
+    const toggleDisplayBtn = document.getElementById('toggleDisplayBtn');
+    const displayModes = [
+      { key: 'all', label: '表示: すべて' },
+      { key: 'unvisited', label: '表示: 未巡回' },
+      { key: 'visited', label: '✔ 巡回済み' },
+      { key: 'fav', label: '★ お気に入り' }
+    ];
+    let currentModeIndex = 0;
+
+    if (toggleDisplayBtn) {
+      toggleDisplayBtn.addEventListener('click', () => {
+        // 次のモードへ移行
+        currentModeIndex = (currentModeIndex + 1) % displayModes.length;
+        const currentMode = displayModes[currentModeIndex];
+
+        toggleDisplayBtn.textContent = currentMode.label;
+
+        // 画面上のブースカードの表示／非表示切り替え
+        const cards = boothListEl.querySelectorAll('.booth-card');
+        cards.forEach(card => {
+          const isVisited = card.classList.contains('checked');
+          const isFav = card.querySelector('.fav-btn')?.classList.contains('active');
+
+          if (currentMode.key === 'all') {
+            card.style.display = '';
+          } else if (currentMode.key === 'unvisited') {
+            card.style.display = !isVisited ? '' : 'none';
+          } else if (currentMode.key === 'visited') {
+            card.style.display = isVisited ? '' : 'none';
+          } else if (currentMode.key === 'fav') {
+            card.style.display = isFav ? '' : 'none';
+          }
         });
       });
     }
