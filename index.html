@@ -128,7 +128,7 @@
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding: 10px 12px 4px;
+      padding: 8px 0 4px; /* 余白を微調整 */
       scrollbar-width: none;
     }
     .filter-container::-webkit-scrollbar { display: none; }
@@ -154,7 +154,7 @@
 
     /* 検索バー */
     .search-container {
-      padding: 6px 12px;
+      padding: 6px 0 0; /* ヘッダー内に収まるよう左右パディングを調整 */
       max-width: 800px;
       margin: 0 auto;
     }
@@ -169,12 +169,12 @@
       font-size: 0.9rem;
       outline: none;
     }
-  /* スマホ（画面幅768px以下）の時だけ拡大防止のために16pxにする */
-      @media (max-width: 768px) {
-      .search-input {
-       font-size: 16px;
+    /* スマホ（画面幅768px以下）の時だけ拡大防止のために16pxにする */
+    @media (max-width: 768px) {
+  .search-input {
+    font-size: 16px;
   }
-}
+}   
     .search-input:focus {
       border-color: var(--accent-cyan);
     }
@@ -451,7 +451,7 @@
     <div class="progress-bar-bg">
       <div id="progressBar" class="progress-bar-fill"></div>
     </div>
-  </header>
+  
 
   <!-- 絞り込みフィルター -->
   <div class="filter-container" id="filterContainer">
@@ -463,6 +463,8 @@
   <div class="search-container">
     <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーワードで検索...">
   </div>
+
+</header>
 
   <!-- ブースリスト -->
   <main class="main-container">
