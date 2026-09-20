@@ -1211,27 +1211,63 @@
         const card = document.createElement('div');
         card.className = `booth-card ${isChecked ? 'checked' : ''}`;
 
-        card.innerHTML = `
-          <div class="booth-info">
-            <div class="booth-header">
-              <span class="booth-id">${booth.id}</span>
-              <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${booth.id}', '${safeName}')">
-                ${isFav ? '★' : '☆'}
-              </button>
-            </div>
-            <div class="booth-name" title="${booth.name}">${booth.name}</div>
-            <div class="booth-desc" title="${tagsText}">${tagsText}</div>
-            <textarea class="booth-memo" maxlength="100" placeholder="メモ（100文字まで）">${memoText}</textarea>
-          </div>
-          <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
-            ${isChecked ? '巡回済' : '巡回する'}
-          </button>
-        `;
+// Xポスト用の本文・URL生成処理
+const hashtag = "#生成AIなんでも展示会";
+        const headerText = `【${booth.name} (${booth.id})】\n`;
+        const MAX_LENGTH = 140;
+        const maxMemoLength = MAX_LENGTH - (headerText.length + 2 + hashtag.length);
+        
+        let finalMemo = memoText;
+        if (memoText.length > maxMemoLength) {
+          finalMemo = memoText.substring(0, maxMemoLength - 1) + "…";
+        }
+        
+        let tweetContent = memoText.trim() 
+          ? `${headerText}${finalMemo}\n\n${hashtag}`
+          : `${headerText}${hashtag}`;
 
-        // メモ変更時の自動保存
+        const xShareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetContent)}`;
+
+        card.innerHTML = `
+  <div class="booth-info">
+    <div class="booth-header">
+      <span class="booth-id">${booth.id}</span>
+      <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${booth.id}', '${safeName}')">
+        ${isFav ? '★' : '☆'}
+      </button>
+    </div>
+    <div class="booth-name" title="${booth.name}">${booth.name}</div>
+    <div class="booth-desc" title="${tagsText}">${tagsText}</div>
+    <textarea class="booth-memo" maxlength="100" placeholder="メモ（100文字まで）">${memoText}</textarea>
+    
+    <a href="${xShareUrl}" class="post-x-btn" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 6px; font-size: 0.75rem; padding: 4px 8px; border: 1px solid #555; color: #fff; background: #000; text-decoration: none; border-radius: 4px;">
+       𝕏 メモをポスト
+    </a>
+
+  </div>
+  <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
+    ${isChecked ? '巡回済' : '巡回する'}
+  </button>
+`;
+
+        // メモ入力時にリアルタイムでXポスト用URLも更新する処理
         const memoInput = card.querySelector('.booth-memo');
+        const postXLink = card.querySelector('.post-x-btn');
+
         memoInput.addEventListener('input', (e) => {
-          saveMemo(itemKey, e.target.value);
+          const newMemo = e.target.value;
+          saveMemo(itemKey, newMemo);
+
+          // ポスト用URLのリアルタイム更新
+          let updatedMemo = newMemo;
+          if (newMemo.length > maxMemoLength) {
+            updatedMemo = newMemo.substring(0, maxMemoLength - 1) + "…";
+          }
+          const updatedContent = newMemo.trim() 
+            ? `${headerText}${updatedMemo}\n\n${hashtag}`
+            : `${headerText}${hashtag}`;
+
+          postXLink.href = `https://x.com/intent/tweet?text=${encodeURIComponent(updatedContent)}`;
         });
 
         boothListEl.appendChild(card);
