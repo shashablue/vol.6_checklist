@@ -400,6 +400,12 @@
       from { opacity: 0; transform: translateY(20px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
+    /* 音声ボタン専用カラー（オレンジ系） */
+    .filter-btn.voice-active {
+     background: rgba(255, 183, 3, 0.2);
+    border-color: var(--accent-amber);
+    color: var(--accent-amber);
+}
     /* ボタンが押されたときの凹みアニメーション */
     button:active, .filter-btn:active, .pressed {
       transform: scale(0.92) !important;
@@ -416,7 +422,8 @@
     <div class="header-top">
       <div class="app-title">生成AIなんでも展示会 vol.6</div>
       <div class="header-controls">
-        <button id="voiceToggleBtn" class="filter-btn active">音声: ON</button>
+        <button id="mapBtn" class="filter-btn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">会場マップ</button>
+        <button id="voiceToggleBtn" class="filter-btn voice-active">音声: ON</button>
         <button id="returnBtn" class="filter-btn" style="border-color: #7928ca; color: #c084fc;">帰還</button>
         <button id="resetBtn" class="filter-btn" style="border-color: var(--accent-alert); color: var(--accent-alert);">巡回初期化</button>
       </div>
@@ -754,6 +761,13 @@
     const filterContainer = document.getElementById('filterContainer');
     const searchInput = document.getElementById('searchInput');
 
+    const mapBtn = document.getElementById('mapBtn');
+    if (mapBtn) {
+  mapBtn.addEventListener('click', () => {
+    window.open('https://www.genai-expo.com/vol6/map', '_blank');
+  });
+}
+
     // 音声ON/OFFの状態（デフォルトON）
     let isVoiceEnabled = true;
     const voiceToggleBtn = document.getElementById('voiceToggleBtn');
@@ -770,6 +784,8 @@
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
     });
+
+    
 
     // モーダル要素
     const reportModal = document.getElementById('reportModal');
