@@ -1166,12 +1166,7 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
       speak('巡回データを初期化しました。');
 
       // 完了メッセージに切り替えて閉じる準備
-      resetModalMessage.textContent = '巡回データを初期化しました。';
-      confirmResetBtn.style.display = 'none'; // 実行ボタンを隠す
-      
-      setTimeout(() => {
-        resetModal.style.display = 'none';
-      }, 1200);
+    resetModal.style.display = 'none';
     });
 
     updateCounter();
