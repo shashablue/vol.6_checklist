@@ -243,23 +243,26 @@
     }
 
     .booth-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-left: 4px solid var(--accent-cyan);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      transition: all 0.25s ease;
-    }
+  background: var(--bg-card);
+  /* 枠線の色を rgba で半透明にして落ち着いた印象に */
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 12px 12px 15px; /* サイズ維持用のパディング */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.25s ease;
+  /* 周囲の上品なサイバー発光感はそのまま維持 */
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+}
 
-    .booth-card.checked {
-      background: var(--bg-card-checked);
-      border-color: var(--border-checked);
-      border-left: 4px solid var(--accent-success);
-      opacity: 0.75;
+.booth-card.checked {
+      /* 背景に半透明の鮮やかな緑（サイバーグリーン）を重ねる */
+      background: linear-gradient(rgba(10, 255, 178, 0.80), rgba(10, 255, 178, 0.15)), var(--bg-card-visited);
+      border: 1px solid var(--accent-green); /* 枠線全体を鮮やかなグリーンに */
+      box-shadow: 0 0 12px rgba(10, 255, 178, 0.4); /* グリーンのサイバー発光 */
+      opacity: 0.5;
     }
 
     .booth-info {
