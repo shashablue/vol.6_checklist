@@ -566,7 +566,7 @@
     </div>
 
     <div class="counter-container">
-      <div class="counter-label">未巡回ブース</div>
+      <div class="counter-label">巡回ブース進捗</div>
       <div class="counter-display">
         残り <span id="remainingCount" class="remaining-num">0</span> / <span id="totalCount">0</span>
       </div>
@@ -1363,8 +1363,8 @@ const scrollTopBtn = document.getElementById('scrollTopBtn');
     const displayModes = [
       { key: 'all', label: '表示: すべて' },
       { key: 'unvisited', label: '表示: 未巡回' },
-      { key: 'visited', label: '✔ 巡回済み' },
-      { key: 'fav', label: '★ お気に入り' }
+      { key: 'visited', label: '表示：巡回済み' },
+      { key: 'fav', label: '表示：お気に入り' }
     ];
     let currentModeIndex = 0;
 
