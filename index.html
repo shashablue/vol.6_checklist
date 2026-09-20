@@ -819,6 +819,7 @@
     const mapBtn = document.getElementById('mapBtn');
     if (mapBtn) {
   mapBtn.addEventListener('click', () => {
+    mapBtn.classList.add('pressed'); setTimeout(() => mapBtn.classList.remove('pressed'), 150);
     window.open('https://www.genai-expo.com/vol6/map', '_blank');
   });
 }
