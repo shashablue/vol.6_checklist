@@ -464,6 +464,22 @@
       <button id="closeModalBtn" class="report-close-btn">確認して閉じる</button>
     </div>
   </div>
+  <!-- 巡回初期化確認用モーダルカード（ここに追加します） -->
+  <div id="resetModal" class="report-modal-overlay" style="display: none;">
+    <div class="report-card" style="border-color: var(--accent-alert);">
+      <div class="report-header">
+        <span class="report-icon">⚠️</span>
+        <h3 class="report-title" style="color: var(--accent-alert);">巡回データのリセット</h3>
+      </div>
+      <p id="resetModalMessage" class="report-message">
+        これまでの巡回チェックをすべて初期化しますか？<br>この操作は取り消せません。
+      </p>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button id="cancelResetBtn" class="filter-btn" style="flex: 1; padding: 12px; font-size: 0.9rem;">キャンセル</button>
+        <button id="confirmResetBtn" class="report-close-btn" style="flex: 1; background: linear-gradient(135deg, #ff4b5c, #990011);">初期化する</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const boothMasterData = [
@@ -969,14 +985,45 @@
       renderBooths();
     });
 
+    // リセットモーダル要素
+    const resetModal = document.getElementById('resetModal');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const confirmResetBtn = document.getElementById('confirmResetBtn');
+    const resetModalMessage = document.getElementById('resetModalMessage');
+
+    // 「巡回初期化」ボタンクリックで確認モーダル表示
     resetBtn.addEventListener('click', () => {
-      if (confirm('巡回チェックをすべてリセットしますか？')) {
-        checkedBoothIds.clear();
-        saveState();
-        updateCounter();
-        renderBooths();
-        speak('巡回データを初期化しました。');
-      }
+      resetModalMessage.innerHTML = 'これまでの巡回チェックをすべて初期化しますか？<br>この操作は取り消せません。';
+      confirmResetBtn.style.display = 'block';
+      confirmResetBtn.textContent = '初期化する';
+      resetModal.style.display = 'flex';
+    });
+
+    // キャンセルボタン
+    cancelResetBtn.addEventListener('click', () => {
+      resetModal.style.display = 'none';
+    });
+
+    // モーダル背景クリックで閉じる
+    resetModal.addEventListener('click', (e) => {
+      if (e.target === resetModal) resetModal.style.display = 'none';
+    });
+
+    // 「初期化する」実行ボタン
+    confirmResetBtn.addEventListener('click', () => {
+      checkedBoothIds.clear();
+      saveState();
+      updateCounter();
+      renderBooths();
+      speak('巡回データを初期化しました。');
+
+      // 完了メッセージに切り替えて閉じる準備
+      resetModalMessage.textContent = '巡回データを初期化しました。';
+      confirmResetBtn.style.display = 'none'; // 実行ボタンを隠す
+      
+      setTimeout(() => {
+        resetModal.style.display = 'none';
+      }, 1200);
     });
 
     updateCounter();
