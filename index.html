@@ -35,16 +35,18 @@
       overflow-x: hidden; /* 横スクロールの発生を防止 */
     }
 
-    /* 固定ヘッダー */
-    .sticky-header {
-      position: sticky;
+   /* 固定ヘッダー (スマホキーボード表示時もずれないよう fixed に変更) */
+   .sticky-header {
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 100;
       background: rgba(9, 13, 22, 0.95);
       backdrop-filter: blur(12px);
       border-bottom: 2px solid var(--border-color);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-      padding: 10px 12px 12px; /* ★下部パディングを12pxに調整 */
+      padding: 10px 12px 12px;
     }
     
     .header-top {
@@ -218,11 +220,11 @@
       border-color: var(--accent-cyan);
     }
 
-    /* メインコンテンツ */
-    .main-container {
+   /* メインコンテンツ (ヘッダーに被らないよう上部にマージンを追加) */
+   .main-container {
       padding: 8px 12px;
       max-width: 800px;
-      margin: 0 auto;
+      margin: 175px auto 0; /* ★固定ヘッダーの高さを考慮して上部余白を設定 */
     }
 
     /* スマホ（縦画面）で見やすい1列配置レイアウト */
@@ -498,6 +500,7 @@
       <div class="filter-container" id="filterContainer">
         <button class="filter-btn active" data-filter="all">全出展者</button>
         <button class="filter-btn" data-filter="unvisited">未巡回のみ</button>
+        <button class="filter-btn" id="scrollTopBtn" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">▲ TOP</button>
         <button class="filter-btn" id="clearSearchBtn">検索クリア</button>
       </div>
 
@@ -1170,6 +1173,20 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
 
     updateCounter();
     renderBooths();
+
+    // ★ここに「TOPへ戻る」ボタンの処理を追加します
+    const scrollTopBtn = document.getElementById('scrollTopBtn');
+    if (scrollTopBtn) {
+      scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
