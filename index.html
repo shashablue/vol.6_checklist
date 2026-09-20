@@ -423,6 +423,35 @@
       word-break: break-word;
     }
 
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tweet-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #000000;
+      color: #ffffff;
+      border: 1px solid #333333;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .tweet-btn:hover {
+      background: #111111;
+      border-color: #555555;
+    }
+
     .report-close-btn {
       width: 100%;
       padding: 12px;
@@ -436,7 +465,7 @@
       transition: opacity 0.2s;
     }
 
-    .report-close-btn:active {
+    .report-close-btn:active, .tweet-btn:active {
       opacity: 0.8;
     }
 
@@ -524,7 +553,7 @@
   <div id="reportModal" class="report-modal-overlay" style="display: none;">
     <div class="report-card">
       <div class="report-header">
-        <span class="report-icon">📊</span>
+        <span class="report-icon"></span>
         <h3 class="report-title">巡回状況リポート</h3>
       </div>
       <div class="report-stats">
@@ -539,14 +568,23 @@
         </div>
       </div>
       <p id="modalMessage" class="report-message"></p>
-      <button id="closeModalBtn" class="report-close-btn">確認して閉じる</button>
+      <div class="modal-actions">
+        <button id="tweetBtn" class="tweet-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          結果をXにポスト
+        </button>
+        <button id="closeModalBtn" class="report-close-btn">確認して閉じる</button>
+      </div>
     </div>
   </div>
-  <!-- 巡回初期化確認用モーダルカード（ここに追加します） -->
+
+  <!-- 巡回初期化確認用モーダルカード -->
   <div id="resetModal" class="report-modal-overlay" style="display: none;">
     <div class="report-card" style="border-color: var(--accent-alert);">
       <div class="report-header">
-        <span class="report-icon">⚠️</span>
+        <span class="report-icon"></span>
         <h3 class="report-title" style="color: var(--accent-alert);">巡回データのリセット</h3>
       </div>
       <p id="resetModalMessage" class="report-message">
@@ -874,11 +912,11 @@
 
     const mapBtn = document.getElementById('mapBtn');
     if (mapBtn) {
-  mapBtn.addEventListener('click', () => {
-    mapBtn.classList.add('pressed'); setTimeout(() => mapBtn.classList.remove('pressed'), 150);
-    window.open('https://www.genai-expo.com/vol6/map', '_blank');
-  });
-}
+      mapBtn.addEventListener('click', () => {
+        mapBtn.classList.add('pressed'); setTimeout(() => mapBtn.classList.remove('pressed'), 150);
+        window.open('https://www.genai-expo.com/vol6/map', '_blank');
+      });
+    }
 
     // 音声ON/OFFの状態（デフォルトON）
     let isVoiceEnabled = true;
@@ -897,8 +935,6 @@
       }
     });
 
-    
-
     // モーダル要素
     const reportModal = document.getElementById('reportModal');
     const modalVisited = document.getElementById('modalVisited');
@@ -906,6 +942,9 @@
     const modalRate = document.getElementById('modalRate');
     const modalMessage = document.getElementById('modalMessage');
     const closeModalBtn = document.getElementById('closeModalBtn');
+    const tweetBtn = document.getElementById('tweetBtn');
+
+    let currentTweetText = "";
 
     const closeReportModal = () => {
       if (reportModal) reportModal.style.display = 'none';
@@ -918,6 +957,14 @@
       });
     }
 
+    // Tweetボタンのクリックイベント
+    if (tweetBtn) {
+      tweetBtn.addEventListener('click', () => {
+        const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(currentTweetText)}`;
+        window.open(shareUrl, '_blank');
+      });
+    }
+
     if (returnBtn) {
       returnBtn.addEventListener('click', () => {
         returnBtn.classList.add('pressed'); setTimeout(() => returnBtn.classList.remove('pressed'), 150);
@@ -927,10 +974,8 @@
         let message = "";
 
         if (visited === 0) {
-          // 巡回数が本当に0件のときのみ
           message = "作戦開始前ですね。1つも巡回していません。ご安全に！";
         } else if (rate < 20) {
-          // 1% 〜 19% は1%刻み（ブース数によって 1件目で rate が 0% になる場合もここに入ります）
           if (rate === 0 || rate === 1) message = `お疲れ様です！達成率${rate}%！記念すべき最初の一歩ですね！`;
           else if (rate === 2) message = `お疲れ様です！達成率2%！順調な滑り出しです！`;
           else if (rate === 3) message = `お疲れ様です！達成率3%！着実に進んでいますね！`;
@@ -951,7 +996,6 @@
           else if (rate === 18) message = `お疲れ様です！達成率18%！チェックが着実に増えています！`;
           else if (rate === 19) message = `お疲れ様です！達成率19%！20%まであと少し！`;
         } else if (rate < 100) {
-          // 20% 〜 99% は 5%刻みで判定
           const step = Math.floor(rate / 5) * 5;
 
           if (step === 20) message = `お疲れ様です！達成率${rate}%！20%を突破し、順調な巡回ペースです！`;
@@ -979,6 +1023,13 @@
         if (modalRate) modalRate.textContent = `${rate}%`;
         if (modalMessage) modalMessage.textContent = message;
 
+        // Xに投稿するテキストの組み立て
+        currentTweetText = `【生成AIなんでも展示会 vol.6 巡回状況】\n`
+          + `巡回ブース：${visited} / ${total} 件 (達成率: ${rate}%)\n`
+          + `${message}\n\n`
+          + `#生成AIなんでも展示会\n`
+          + `https://www.genai-expo.com/`;
+
         if (reportModal) reportModal.style.display = 'flex';
 
         speak(message);
@@ -989,17 +1040,14 @@
       if (!isVoiceEnabled) return;
       if (!('speechSynthesis' in window)) return;
 
-      // 既存の再生をキャンセル
       window.speechSynthesis.cancel();
 
-      // iOSのタイミングバグ・Androidの読み込み遅延を防ぐため50ミリ秒遅延させて再生
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
 
-        // 日本語音声を明示的に割り当てる（Android・iOS両対応）
         const voices = window.speechSynthesis.getVoices();
         if (voices.length > 0) {
           const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
@@ -1103,76 +1151,66 @@
     }
 
     filterContainer.addEventListener('click', (e) => {
-  // data-filter 属性を持つボタンだけアクティブ切り替えを行う
-  if (e.target.classList.contains('filter-btn') && e.target.hasAttribute('data-filter')) {
-    document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    currentFilter = e.target.getAttribute('data-filter');
-    renderBooths();
-  }
-});
+      if (e.target.classList.contains('filter-btn') && e.target.hasAttribute('data-filter')) {
+        document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-filter');
+        renderBooths();
+      }
+    });
+
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       renderBooths();
     });
 
-// 検索クリアボタンの処理
-const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
     if (clearSearchBtn) {
       clearSearchBtn.addEventListener('click', () => {
         searchInput.value = '';
         searchQuery = '';
         renderBooths();
 
-        // クリック時の一瞬の発光アニメーション
         clearSearchBtn.classList.add('active-flash');
         setTimeout(() => {
           clearSearchBtn.classList.remove('active-flash');
-        }, 300); // 0.3秒後に元の薄い状態に戻る
+        }, 300);
       });
     }
 
-    // リセットモーダル要素
     const resetModal = document.getElementById('resetModal');
     const cancelResetBtn = document.getElementById('cancelResetBtn');
     const confirmResetBtn = document.getElementById('confirmResetBtn');
     const resetModalMessage = document.getElementById('resetModalMessage');
 
-    // 「巡回初期化」ボタンクリックで確認モーダル表示
     resetBtn.addEventListener('click', () => {
-        resetBtn.classList.add('pressed'); setTimeout(() => resetBtn.classList.remove('pressed'), 150);
+      resetBtn.classList.add('pressed'); setTimeout(() => resetBtn.classList.remove('pressed'), 150);
       resetModalMessage.innerHTML = 'これまでの巡回チェックをすべて初期化しますか？<br>この操作は取り消せません。';
       confirmResetBtn.style.display = 'block';
       confirmResetBtn.textContent = '初期化する';
       resetModal.style.display = 'flex';
     });
 
-    // キャンセルボタン
     cancelResetBtn.addEventListener('click', () => {
       resetModal.style.display = 'none';
     });
 
-    // モーダル背景クリックで閉じる
     resetModal.addEventListener('click', (e) => {
       if (e.target === resetModal) resetModal.style.display = 'none';
     });
 
-    // 「初期化する」実行ボタン
     confirmResetBtn.addEventListener('click', () => {
       checkedBoothIds.clear();
       saveState();
       updateCounter();
       renderBooths();
       speak('巡回データを初期化しました。');
-
-      // 完了メッセージに切り替えて閉じる準備
-    resetModal.style.display = 'none';
+      resetModal.style.display = 'none';
     });
 
     updateCounter();
     renderBooths();
 
-    // ★ここに「TOPへ戻る」ボタンの処理を追加します
     const scrollTopBtn = document.getElementById('scrollTopBtn');
     if (scrollTopBtn) {
       scrollTopBtn.addEventListener('click', () => {
@@ -1182,9 +1220,6 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
         });
       });
     }
-  </script>
-</body>
-</html>
   </script>
 </body>
 </html>
