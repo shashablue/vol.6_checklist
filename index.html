@@ -45,6 +45,13 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
       padding: 12px 16px;
     }
+    /* ヘッダー上部のレイアウト調整 */
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
 
     .app-title {
       font-size: 0.8rem;
@@ -52,7 +59,6 @@
       letter-spacing: 0.15em;
       color: var(--accent-cyan);
       text-transform: uppercase;
-      margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -62,6 +68,12 @@
       content: "■";
       color: var(--accent-alert);
       font-size: 0.7rem;
+    }
+    /* 音声ボタンと初期化ボタンを横並びにするコンテナ */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .counter-container {
@@ -166,17 +178,25 @@
       margin: 0 auto;
     }
 
-    /* ブースグリッド */
+    /* ブースグリッド：最初からスマホ含め2列（横並び）にする */
     .booth-list {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px; /* スマホ向けに隙間を少し狭める */
     }
 
-    @media (min-width: 600px) {
-      .booth-list {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    /* ブースカード：2列並びでも崩れないようコンパクトに調整 */
+    .booth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 6px;
+      padding: 8px 10px; /* 余白を縮小 */
+      display: flex;
+      flex-direction: column; /* 2列用に縦長レイアウトへ変更 */
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.25s ease;
     }
 
     /* ブースカード */
@@ -287,10 +307,17 @@
 
   <!-- 固定ヘッダー -->
   <header class="sticky-header">
-    <div class="app-title">生成AIなんでも展示会 vol.6</div>
+    <div class="header-top">
+      <div class="app-title">生成AIなんでも展示会 vol.6</div>
+      <!-- 音声ボタンと初期化ボタンを横並びに配置 -->
+      <div class="header-controls">
+        <button id="voiceToggleBtn" class="filter-btn active"> 音声: ON</button>
+        <button id="resetBtn" class="filter-btn" style="border-color: var(--accent-alert); color: var(--accent-alert);">巡回初期化</button>
+      </div>
+    </div>
+    
     <div class="counter-container">
       <div class="counter-label">未確認ブース</div>
-      <button id="voiceToggleBtn" class="filter-btn active" style="margin-left: auto;">🔊 音声: ON</button>
       <div class="counter-display">
         残り <span id="remainingCount" class="remaining-num">0</span> / <span id="totalCount">0</span>
       </div>
@@ -314,10 +341,6 @@
   <!-- ブースリスト -->
   <main class="main-container">
     <div class="booth-list" id="boothList"></div>
-
-    <div class="footer-actions">
-      <button id="resetBtn" class="reset-btn">⚠ 巡回データを初期化（全リセット）</button>
-    </div>
   </main>
 
   <script>
@@ -638,14 +661,14 @@ function toggleBooth(id, name) {
   if (isChecked) {
     checkedBoothIds.delete(key);
     const remaining = boothMasterData.length - checkedBoothIds.size;
-    speak(`${booth ? booth.name : name}の確認を解除しました。残り${remaining}箇所です。`);
+    speak(`${booth ? booth.name : name}の巡回を解除しました。残り${remaining}箇所です。`);
   } else {
     checkedBoothIds.add(key);
     const remaining = boothMasterData.length - checkedBoothIds.size;
     if (remaining === 0) {
-      speak(`全ブースの確認が完了しました！お疲れ様でした！`);
+      speak(`全ブースの巡回が完了しました！お疲れ様でした！`);
     } else {
-      speak(`${booth ? booth.name : name}確認！残り${remaining}箇所です。`);
+      speak(`${booth ? booth.name : name}巡回！残り${remaining}箇所です。`);
     }
   }
 
@@ -706,7 +729,7 @@ function renderBooths() {
         <div class="booth-desc" title="${tagsText}">${tagsText}</div>
       </div>
       <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
-        ${isChecked ? '✓ 確認済' : '確認する'}
+        ${isChecked ? '✓ 巡回済' : '巡回する'}
       </button>
     `;
     boothListEl.appendChild(card);
