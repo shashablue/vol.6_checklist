@@ -849,18 +849,20 @@
       // 既存の再生をキャンセル
       window.speechSynthesis.cancel();
 
-      // iOSのタイミングバグを防ぐため、50ミリ秒遅延させて再生する
+      // iOSのタイミングバグ・Androidの読み込み遅延を防ぐため50ミリ秒遅延させて再生
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
 
-        // ブラウザが保持している日本語音声を明示的に割り当てる
+        // 日本語音声を明示的に割り当てる（Android・iOS両対応）
         const voices = window.speechSynthesis.getVoices();
-        const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
-        if (jaVoice) {
-          utterance.voice = jaVoice;
+        if (voices.length > 0) {
+          const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
+          if (jaVoice) {
+            utterance.voice = jaVoice;
+          }
         }
 
         window.speechSynthesis.speak(utterance);
