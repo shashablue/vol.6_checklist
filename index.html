@@ -311,10 +311,12 @@
       <div class="app-title">生成AIなんでも展示会 vol.6</div>
       <!-- 音声ボタンと初期化ボタンを横並びに配置 -->
       <div class="header-controls">
-        <button id="voiceToggleBtn" class="filter-btn active"> 音声: ON</button>
-        <button id="resetBtn" class="filter-btn" style="border-color: var(--accent-alert); color: var(--accent-alert);">巡回初期化</button>
+        <button id="voiceToggleBtn" class="filter-btn active">音声: ON</button>
+        <button id="returnBtn" class="filter-btn" style="border-color: var(--accent-purple); color: #c084fc;">🚀 帰還</button>
+        <button id="resetBtn" class="filter-btn" style="border-color: var(--accent-alert); color: var(--accent-alert);">初期化</button>
       </div>
     </div>
+
     
     <div class="counter-container">
       <div class="counter-label">未確認ブース</div>
@@ -610,16 +612,40 @@ const voiceToggleBtn = document.getElementById('voiceToggleBtn');
 voiceToggleBtn.addEventListener('click', () => {
   isVoiceEnabled = !isVoiceEnabled;
   if (isVoiceEnabled) {
-    voiceToggleBtn.textContent = '🔊 音声: ON';
+    voiceToggleBtn.textContent = '音声: ON';
     voiceToggleBtn.classList.add('active');
     speak('音声読み上げをオンにしました。');
   } else {
-    voiceToggleBtn.textContent = '🔇 音声: OFF';
+    voiceToggleBtn.textContent = '音声: OFF';
     voiceToggleBtn.classList.remove('active');
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
 });
+// ★「帰還」ボタンのクリックイベント（正しく喋る処理）
+if (returnBtn) {
+      returnBtn.addEventListener('click', () => {
+        const total = boothMasterData.length;
+        const visited = checkedBoothIds.size;
+        const rate = total > 0 ? Math.round((visited / total) * 100) : 0;
 
+        let message = "";
+
+        if (visited === 0) {
+          message = "作戦開始前ですね。1つも巡回していません。ご安全に！";
+        } else if (rate < 30) {
+          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。まだまだこれからですね！`;
+        } else if (rate < 70) {
+          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。順調なペースで巡回が進んでいます。`;
+        } else if (rate < 100) {
+          message = `お疲れ様です。全${total}件中${visited}件確認、達成率は${rate}%です。あと少しでコンプリートです！`;
+        } else {
+          message = `素晴らしい！全${total}件の巡回を完了しました！本日のミッション完全達成です。お疲れ様でした！`;
+        }
+
+        // 音声再生を実行
+        speak(message);
+      });
+    }
     // 音声読み上げ (Web Speech API)
     function speak(text) {
   if (!isVoiceEnabled) return; // 音声OFFのときは再生しない
