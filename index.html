@@ -32,6 +32,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
       min-height: 100vh;
       padding-bottom: 80px;
+      overflow-x: hidden; /* 横スクロールの発生を防止 */
     }
 
     /* 固定ヘッダー */
@@ -39,24 +40,26 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(9, 13, 22, 0.92);
+      background: rgba(9, 13, 22, 0.95);
       backdrop-filter: blur(12px);
       border-bottom: 2px solid var(--border-color);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-      padding: 12px 16px;
+      padding: 10px 12px;
     }
     
     .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap; /* 小さい画面での崩れ防止 */
     }
 
     .app-title {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.05em;
       color: var(--accent-cyan);
       text-transform: uppercase;
       display: flex;
@@ -84,13 +87,13 @@
     }
 
     .counter-label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       letter-spacing: 0.05em;
     }
 
     .counter-display {
-      font-size: 1.4rem;
+      font-size: 1.1rem;
       font-weight: 900;
       font-family: "Courier New", Courier, monospace;
       color: #ffffff;
@@ -99,16 +102,16 @@
     .counter-display .remaining-num {
       color: var(--accent-amber);
       text-shadow: 0 0 12px rgba(255, 183, 3, 0.6);
-      font-size: 1.8rem;
+      font-size: 1.5rem;
     }
 
     /* プログレスバー */
     .progress-bar-bg {
       width: 100%;
-      height: 4px;
+      height: 6px;
       background: #1a2333;
-      border-radius: 2px;
-      margin-top: 8px;
+      border-radius: 3px;
+      margin-top: 6px;
       overflow: hidden;
     }
 
@@ -123,9 +126,9 @@
     /* フィルター */
     .filter-container {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       overflow-x: auto;
-      padding: 12px 16px 4px;
+      padding: 10px 12px 4px;
       scrollbar-width: none;
     }
     .filter-container::-webkit-scrollbar { display: none; }
@@ -134,10 +137,10 @@
       background: #131d2e;
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 6px 12px;
-      font-size: 0.75rem;
+      padding: 8px 12px;
+      font-size: 0.8rem;
       font-weight: bold;
-      border-radius: 4px;
+      border-radius: 6px;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.2s;
@@ -151,7 +154,7 @@
 
     /* 検索バー */
     .search-container {
-      padding: 8px 16px;
+      padding: 6px 12px;
       max-width: 800px;
       margin: 0 auto;
     }
@@ -161,9 +164,9 @@
       background: #101726;
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 10px 14px;
+      padding: 10px 12px;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       outline: none;
     }
 
@@ -173,23 +176,32 @@
 
     /* メインコンテンツ */
     .main-container {
-      padding: 12px 16px;
+      padding: 8px 12px;
       max-width: 800px;
       margin: 0 auto;
     }
 
+    /* スマホ（縦画面）で見やすい1列配置レイアウト */
     .booth-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* PCなど画面幅が広い場合のみ2列表示 */
+    @media (min-width: 640px) {
+      .booth-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .booth-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-left: 4px solid var(--accent-cyan);
-      border-radius: 6px;
-      padding: 12px 14px;
+      border-radius: 8px;
+      padding: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -224,13 +236,14 @@
       background: rgba(0, 240, 255, 0.1);
       padding: 2px 6px;
       border-radius: 3px;
+      display: inline-block;
     }
 
     .booth-name {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: bold;
       color: #ffffff;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -244,18 +257,19 @@
       text-overflow: ellipsis;
     }
 
-    /* ボタン */
+    /* タップしやすいボタン設計 */
     .check-btn {
       background: #162438;
       color: var(--accent-cyan);
       border: 1px solid var(--accent-cyan);
-      padding: 10px 14px;
-      font-size: 0.8rem;
+      padding: 10px 12px;
+      font-size: 0.85rem;
       font-weight: bold;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
-      min-width: 88px;
+      min-width: 80px;
       text-align: center;
+      flex-shrink: 0;
       transition: all 0.2s;
     }
 
@@ -269,7 +283,7 @@
       border-color: var(--accent-success);
     }
 
-    /* 帰還レポート用モーダルカードのスタイル */
+    /* モーダル表示 */
     .report-modal-overlay {
       position: fixed;
       top: 0;
@@ -282,7 +296,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 16px;
       animation: fadeIn 0.2s ease-out;
     }
 
@@ -292,8 +306,8 @@
       box-shadow: 0 10px 30px rgba(121, 40, 202, 0.3), 0 0 20px rgba(0, 240, 255, 0.1);
       border-radius: 16px;
       width: 100%;
-      max-width: 380px;
-      padding: 24px;
+      max-width: 360px;
+      padding: 20px;
       text-align: center;
       color: var(--text-main, #e2e8f0);
       animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -337,7 +351,7 @@
     }
 
     .stat-value {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 800;
       font-family: "Courier New", Courier, monospace;
     }
@@ -353,10 +367,10 @@
     }
 
     .report-message {
-      font-size: 0.95rem;
-      line-height: 1.6;
+      font-size: 0.9rem;
+      line-height: 1.5;
       margin-bottom: 20px;
-      padding: 0 8px;
+      padding: 0 4px;
       word-break: break-word;
     }
 
@@ -420,7 +434,7 @@
 
   <!-- 検索バー -->
   <div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーで検索...">
+    <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーワードで検索...">
   </div>
 
   <!-- ブースリスト -->
@@ -428,7 +442,7 @@
     <div class="booth-list" id="boothList"></div>
   </main>
 
-  <!-- 帰還レポート用モーダルカード（HTML要素としてBody直下に配置） -->
+  <!-- 帰還レポート用モーダルカード -->
   <div id="reportModal" class="report-modal-overlay" style="display: none;">
     <div class="report-card">
       <div class="report-header">
@@ -713,7 +727,6 @@
     let isVoiceEnabled = true;
     const voiceToggleBtn = document.getElementById('voiceToggleBtn');
 
-    // 音声トグルボタンのクリックイベント
     voiceToggleBtn.addEventListener('click', () => {
       isVoiceEnabled = !isVoiceEnabled;
       if (isVoiceEnabled) {
@@ -727,7 +740,7 @@
       }
     });
 
-    // モーダル用DOM要素の取得
+    // モーダル要素
     const reportModal = document.getElementById('reportModal');
     const modalVisited = document.getElementById('modalVisited');
     const modalTotal = document.getElementById('modalTotal');
@@ -735,7 +748,6 @@
     const modalMessage = document.getElementById('modalMessage');
     const closeModalBtn = document.getElementById('closeModalBtn');
 
-    // モーダルを閉じる関数
     const closeReportModal = () => {
       if (reportModal) reportModal.style.display = 'none';
     };
@@ -747,7 +759,6 @@
       });
     }
 
-    // 「帰還」ボタン処理
     if (returnBtn) {
       returnBtn.addEventListener('click', () => {
         const total = boothMasterData.length;
@@ -758,28 +769,78 @@
 
         if (visited === 0) {
           message = "作戦開始前ですね。1つも巡回していません。ご安全に！";
-        } else if (rate < 10) {
-          message = `お疲れ様です！まずは最初の一歩を達成しましたね！`;
-        } else if (rate < 20) {
-          message = `お疲れ様です！順調なスタートを切っています。`;
+        } else if (rate === 1) {
+          message = `お疲れ様です！達成率1%！記念すべき最初の一歩ですね！`;
+        } else if (rate === 2) {
+          message = `お疲れ様です！達成率2%！順調な滑り出しです！`;
+        } else if (rate === 3) {
+          message = `お疲れ様です！達成率3%！着実に進んでいますね！`;
+        } else if (rate === 4) {
+          message = `お疲れ様です！達成率4%！良いペースです！`;
+        } else if (rate === 5) {
+          message = `お疲れ様です！達成率5%！まずは5%突破です！`;
+        } else if (rate === 6) {
+          message = `お疲れ様です！達成率6%！どんどん巡回していきましょう！`;
+        } else if (rate === 7) {
+          message = `お疲れ様です！達成率7%！ラッキーセブン、順調です！`;
+        } else if (rate === 8) {
+          message = `お疲れ様です！達成率8%！リズムが出てきましたね！`;
+        } else if (rate === 9) {
+          message = `お疲れ様です！達成率9%！もうすぐ10%に到達します！`;
+        } else if (rate === 10) {
+          message = `お疲れ様です！達成率10%！二桁の大台に乗りました！`;
+        } else if (rate === 11) {
+          message = `お疲れ様です！達成率11%！さらに勢いを伸ばしていきましょう！`;
+        } else if (rate === 12) {
+          message = `お疲れ様です！達成率12%！順調にチェックが進んでいます！`;
+        } else if (rate === 13) {
+          message = `お疲れ様です！達成率13%！良いテンポで巡回中です！`;
+        } else if (rate === 14) {
+          message = `お疲れ様です！達成率14%！着実に数を重ねています！`;
+        } else if (rate === 15) {
+          message = `お疲れ様です！達成率15%！15%突破、素晴らしい集中力です！`;
+        } else if (rate === 16) {
+          message = `お疲れ様です！達成率16%！この調子で巡りましょう！`;
+        } else if (rate === 17) {
+          message = `お疲れ様です！達成率17%！目標に向かって順調です！`;
+        } else if (rate === 18) {
+          message = `お疲れ様です！達成率18%！チェックが着実に増えています！`;
+        } else if (rate === 19) {
+          message = `お疲れ様です！達成率19%！20%まであと少し！`;
+        } else if (rate < 25) {
+          message = `お疲れ様です！達成率${rate}%！20%を突破し、順調な巡回ペースです！`;
         } else if (rate < 30) {
-          message = `お疲れ様です！徐々に巡回ペースが乗ってきましたね！`;
+          message = `お疲れ様です！達成率${rate}%！四分の一のブースを巡回しました！`;
+        } else if (rate < 35) {
+          message = `お疲れ様です！達成率${rate}%！徐々に巡回ペースが乗ってきましたね！`;
         } else if (rate < 40) {
-          message = `お疲れ様です！順調にチェックが進んでいます。`;
+          message = `お疲れ様です！達成率${rate}%！30%を超えて順調にチェックが進んでいます！`;
+        } else if (rate < 45) {
+          message = `お疲れ様です！達成率${rate}%！40%到達！かなり見て回れてきました！`;
         } else if (rate < 50) {
-          message = `お疲れ様です！もうすぐ折り返し地点ですよ！`;
+          message = `お疲れ様です！達成率${rate}%！もうすぐ折り返し地点の50%ですよ！`;
+        } else if (rate < 55) {
+          message = `お疲れ様です！達成率${rate}%！折り返しの50%を突破！この調子です！`;
         } else if (rate < 60) {
-          message = `お疲れ様です！折り返しを突破！この調子です。`;
+          message = `お疲れ様です！達成率${rate}%！後半戦も良いペースで巡回できています！`;
+        } else if (rate < 65) {
+          message = `お疲れ様です！達成率${rate}%！60%到達！巡回も後半に突入です！`;
         } else if (rate < 70) {
-          message = `お疲れ様です！後半戦も良いペースで巡回できています。`;
+          message = `お疲れ様です！達成率${rate}%！着々と見どころを押さえていますね！`;
+        } else if (rate < 75) {
+          message = `お疲れ様です！達成率${rate}%！70%突破！終わりが見えてきました！`;
         } else if (rate < 80) {
-          message = `お疲れ様です！かなり巡回が進んできましたね！`;
+          message = `お疲れ様です！達成率${rate}%！4分3のブースを制覇しました！`;
+        } else if (rate < 85) {
+          message = `お疲れ様です！達成率${rate}%！かなり巡回が進んできましたね！`;
         } else if (rate < 90) {
-          message = `お疲れ様です！ゴールが目前に見えてきました！`;
+          message = `お疲れ様です！達成率${rate}%！80%突破！ラストスパートです！`;
+        } else if (rate < 95) {
+          message = `お疲れ様です！達成率${rate}%！90%到達！ゴールが目前に見えてきました！`;
         } else if (rate < 100) {
-          message = `お疲れ様です！残りあとわずか、コンプリート目前です！`;
+          message = `お疲れ様です！達成率${rate}%！残りあとわずか、コンプリート目前です！`;
         } else {
-          message = `素晴らしい！全ブースの巡回を完了しました！本日のミッション完全達成です。お疲れ様でした！`;
+          message = "素晴らしい！全ブースの巡回を完了しました！本日のミッション完全達成です。お疲れ様でした！";
         }
 
         if (modalVisited) modalVisited.textContent = visited;
@@ -793,7 +854,6 @@
       });
     }
 
-    // 音声読み上げ (Web Speech API)
     function speak(text) {
       if (!isVoiceEnabled) return;
       if (!('speechSynthesis' in window)) return;
@@ -805,7 +865,6 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    // カウント更新
     function updateCounter() {
       const total = boothMasterData.length;
       const checkedCount = checkedBoothIds.size;
@@ -822,7 +881,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checkedBoothIds)));
     }
 
-    // チェック切り替え
     function toggleBooth(id, name) {
       const key = `${id}_${name}`;
       const booth = boothMasterData.find(b => b.id === id && b.name === name);
@@ -847,7 +905,6 @@
       renderBooths();
     }
 
-    // ブース描画
     function renderBooths() {
       boothListEl.innerHTML = '';
 
@@ -869,7 +926,7 @@
       });
 
       if (filteredBooths.length === 0) {
-        boothListEl.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">該当する出展者が見つかりません</div>`;
+        boothListEl.innerHTML = `<div style="text-align:center; padding: 30px 10px; color: var(--text-muted);">該当する出展者が見つかりません</div>`;
         return;
       }
 
@@ -891,14 +948,13 @@
             <div class="booth-desc" title="${tagsText}">${tagsText}</div>
           </div>
           <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
-            ${isChecked ? ' 巡回済' : '巡回する'}
+            ${isChecked ? '巡回済' : '巡回する'}
           </button>
         `;
         boothListEl.appendChild(card);
       });
     }
 
-    // フィルターイベント
     filterContainer.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -908,13 +964,11 @@
       }
     });
 
-    // 検索イベント
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       renderBooths();
     });
 
-    // リセットイベント
     resetBtn.addEventListener('click', () => {
       if (confirm('巡回チェックをすべてリセットしますか？')) {
         checkedBoothIds.clear();
@@ -925,7 +979,6 @@
       }
     });
 
-    // 初期実行
     updateCounter();
     renderBooths();
   </script>
