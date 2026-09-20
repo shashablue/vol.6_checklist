@@ -784,77 +784,49 @@
         let message = "";
 
         if (visited === 0) {
+          // 巡回数が本当に0件のときのみ
           message = "作戦開始前ですね。1つも巡回していません。ご安全に！";
-        } else if (rate === 1) {
-          message = `お疲れ様です！達成率1%！記念すべき最初の一歩ですね！`;
-        } else if (rate === 2) {
-          message = `お疲れ様です！達成率2%！順調な滑り出しです！`;
-        } else if (rate === 3) {
-          message = `お疲れ様です！達成率3%！着実に進んでいますね！`;
-        } else if (rate === 4) {
-          message = `お疲れ様です！達成率4%！良いペースです！`;
-        } else if (rate === 5) {
-          message = `お疲れ様です！達成率5%！まずは5%突破です！`;
-        } else if (rate === 6) {
-          message = `お疲れ様です！達成率6%！どんどん巡回していきましょう！`;
-        } else if (rate === 7) {
-          message = `お疲れ様です！達成率7%！ラッキーセブン、順調です！`;
-        } else if (rate === 8) {
-          message = `お疲れ様です！達成率8%！リズムが出てきましたね！`;
-        } else if (rate === 9) {
-          message = `お疲れ様です！達成率9%！もうすぐ10%に到達します！`;
-        } else if (rate === 10) {
-          message = `お疲れ様です！達成率10%！二桁の大台に乗りました！`;
-        } else if (rate === 11) {
-          message = `お疲れ様です！達成率11%！さらに勢いを伸ばしていきましょう！`;
-        } else if (rate === 12) {
-          message = `お疲れ様です！達成率12%！順調にチェックが進んでいます！`;
-        } else if (rate === 13) {
-          message = `お疲れ様です！達成率13%！良いテンポで巡回中です！`;
-        } else if (rate === 14) {
-          message = `お疲れ様です！達成率14%！着実に数を重ねています！`;
-        } else if (rate === 15) {
-          message = `お疲れ様です！達成率15%！15%突破、素晴らしい集中力です！`;
-        } else if (rate === 16) {
-          message = `お疲れ様です！達成率16%！この調子で巡りましょう！`;
-        } else if (rate === 17) {
-          message = `お疲れ様です！達成率17%！目標に向かって順調です！`;
-        } else if (rate === 18) {
-          message = `お疲れ様です！達成率18%！チェックが着実に増えています！`;
-        } else if (rate === 19) {
-          message = `お疲れ様です！達成率19%！20%まであと少し！`;
-        } else if (rate < 25) {
-          message = `お疲れ様です！達成率${rate}%！20%を突破し、順調な巡回ペースです！`;
-        } else if (rate < 30) {
-          message = `お疲れ様です！達成率${rate}%！四分の一のブースを巡回しました！`;
-        } else if (rate < 35) {
-          message = `お疲れ様です！達成率${rate}%！徐々に巡回ペースが乗ってきましたね！`;
-        } else if (rate < 40) {
-          message = `お疲れ様です！達成率${rate}%！30%を超えて順調にチェックが進んでいます！`;
-        } else if (rate < 45) {
-          message = `お疲れ様です！達成率${rate}%！40%到達！かなり見て回れてきました！`;
-        } else if (rate < 50) {
-          message = `お疲れ様です！達成率${rate}%！もうすぐ折り返し地点の50%ですよ！`;
-        } else if (rate < 55) {
-          message = `お疲れ様です！達成率${rate}%！折り返しの50%を突破！この調子です！`;
-        } else if (rate < 60) {
-          message = `お疲れ様です！達成率${rate}%！後半戦も良いペースで巡回できています！`;
-        } else if (rate < 65) {
-          message = `お疲れ様です！達成率${rate}%！60%到達！巡回も後半に突入です！`;
-        } else if (rate < 70) {
-          message = `お疲れ様です！達成率${rate}%！着々と見どころを押さえていますね！`;
-        } else if (rate < 75) {
-          message = `お疲れ様です！達成率${rate}%！70%突破！終わりが見えてきました！`;
-        } else if (rate < 80) {
-          message = `お疲れ様です！達成率${rate}%！4分3のブースを制覇しました！`;
-        } else if (rate < 85) {
-          message = `お疲れ様です！達成率${rate}%！かなり巡回が進んできましたね！`;
-        } else if (rate < 90) {
-          message = `お疲れ様です！達成率${rate}%！80%突破！ラストスパートです！`;
-        } else if (rate < 95) {
-          message = `お疲れ様です！達成率${rate}%！90%到達！ゴールが目前に見えてきました！`;
+        } else if (rate < 20) {
+          // 1% 〜 19% は1%刻み（ブース数によって 1件目で rate が 0% になる場合もここに入ります）
+          if (rate === 0 || rate === 1) message = `お疲れ様です！達成率${rate}%！記念すべき最初の一歩ですね！`;
+          else if (rate === 2) message = `お疲れ様です！達成率2%！順調な滑り出しです！`;
+          else if (rate === 3) message = `お疲れ様です！達成率3%！着実に進んでいますね！`;
+          else if (rate === 4) message = `お疲れ様です！達成率4%！良いペースです！`;
+          else if (rate === 5) message = `お疲れ様です！達成率5%！まずは5%突破です！`;
+          else if (rate === 6) message = `お疲れ様です！達成率6%！どんどん巡回していきましょう！`;
+          else if (rate === 7) message = `お疲れ様です！達成率7%！ラッキーセブン、順調です！`;
+          else if (rate === 8) message = `お疲れ様です！達成率8%！リズムが出てきましたね！`;
+          else if (rate === 9) message = `お疲れ様です！達成率9%！もうすぐ10%に到達します！`;
+          else if (rate === 10) message = `お疲れ様です！達成率10%！二桁の大台に乗りました！`;
+          else if (rate === 11) message = `お疲れ様です！達成率11%！さらに勢いを伸ばしていきましょう！`;
+          else if (rate === 12) message = `お疲れ様です！達成率12%！順調にチェックが進んでいます！`;
+          else if (rate === 13) message = `お疲れ様です！達成率13%！良いテンポで巡回中です！`;
+          else if (rate === 14) message = `お疲れ様です！達成率14%！着実に数を重ねています！`;
+          else if (rate === 15) message = `お疲れ様です！達成率15%！15%突破、素晴らしい集中力です！`;
+          else if (rate === 16) message = `お疲れ様です！達成率16%！この調子で巡りましょう！`;
+          else if (rate === 17) message = `お疲れ様です！達成率17%！目標に向かって順調です！`;
+          else if (rate === 18) message = `お疲れ様です！達成率18%！チェックが着実に増えています！`;
+          else if (rate === 19) message = `お疲れ様です！達成率19%！20%まであと少し！`;
         } else if (rate < 100) {
-          message = `お疲れ様です！達成率${rate}%！残りあとわずか、コンプリート目前です！`;
+          // 20% 〜 99% は 5%刻みで判定
+          const step = Math.floor(rate / 5) * 5;
+
+          if (step === 20) message = `お疲れ様です！達成率${rate}%！20%を突破し、順調な巡回ペースです！`;
+          else if (step === 25) message = `お疲れ様です！達成率${rate}%！四分の一のブース（25%）を巡回しました！`;
+          else if (step === 30) message = `お疲れ様です！達成率${rate}%！30%到達！順調にチェックが進んでいます！`;
+          else if (step === 35) message = `お疲れ様です！達成率${rate}%！35%突破！着実に数をこなせています！`;
+          else if (step === 40) message = `お疲れ様です！達成率${rate}%！40%到達！かなり見て回れてきました！`;
+          else if (step === 45) message = `お疲れ様です！達成率${rate}%！45%突破！もうすぐ折り返し地点です！`;
+          else if (step === 50) message = `お疲れ様です！達成率${rate}%！折り返しの50%を突破！この調子です！`;
+          else if (step === 55) message = `お疲れ様です！達成率${rate}%！55%到達！後半戦も良いペースです！`;
+          else if (step === 60) message = `お疲れ様です！達成率${rate}%！60%到達！見どころを押さえてきています！`;
+          else if (step === 65) message = `お疲れ様です！達成率${rate}%！65%突破！後半も順調ですね！`;
+          else if (step === 70) message = `お疲れ様です！達成率${rate}%！70%到達！終わりが見えてきました！`;
+          else if (step === 75) message = `お疲れ様です！達成率${rate}%！四分の三のブース（75%）を制覇しました！`;
+          else if (step === 80) message = `お疲れ様です！達成率${rate}%！80%突破！ラストスパートです！`;
+          else if (step === 85) message = `お疲れ様です！達成率${rate}%！85%到達！ゴールまであと一押しです！`;
+          else if (step === 90) message = `お疲れ様です！達成率${rate}%！90%到達！コンプリート目前です！`;
+          else if (step === 95) message = `お疲れ様です！達成率${rate}%！95%突破！残りあとわずかです！`;
         } else {
           message = "素晴らしい！全ブースの巡回を完了しました！本日のミッション完全達成です。お疲れ様でした！";
         }
