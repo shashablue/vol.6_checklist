@@ -400,12 +400,20 @@
       from { opacity: 0; transform: translateY(20px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
-    /* 音声ボタン専用カラー（オレンジ系） */
-    .filter-btn.voice-active {
-     background: rgba(255, 183, 3, 0.2);
-    border-color: var(--accent-amber);
-    color: var(--accent-amber);
-}
+  /* 音声ONのとき：オレンジの背景、枠線、文字色 */
+     #voiceToggleBtn.voice-active {
+      background: rgba(255, 183, 3, 0.2) !important;
+      border-color: var(--accent-amber) !important;
+      color: var(--accent-amber) !important;
+    }
+
+    /* 音声OFFのとき：背景を透明にし、枠線と文字色だけを残す */
+        #voiceToggleBtn:not(.voice-active) {
+      background: transparent !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      color: var(--text-muted) !important;
+    }
+
     /* ボタンが押されたときの凹みアニメーション */
     button:active, .filter-btn:active, .pressed {
       transform: scale(0.92) !important;
@@ -736,13 +744,62 @@
       { id: "Z-17/Z-18", name: "ととのん", category: "一般出展", tags: ["同人誌・書籍"] },
       { id: "Z-19/Z-20", name: "CROSSNEXT", category: "一般出展", tags: ["同人誌・書籍", "イラスト・グッズ"] },
       { id: "Z-19/Z-20", name: "メロウスフィア", category: "一般出展", tags: ["同人誌・書籍"] },
-      { id: "C-01N", name: "もでっち", category: "ついたて", tags: ["AIキャラ"] },
-      { id: "C-02N", name: "リネ開発室", category: "ついたて", tags: ["AIキャラ"] },  
-      { id: "C-03N", name: "幕末パラダイム", category: "ついたて", tags: ["AIキャラ"] },  
-      { id: "C-04N", name: "gimu games", category: "ついたて", tags: ["ゲーム"] },
-      { id: "C-05N", name: "眞泥魚太", category: "ついたて", tags: ["ゲーム"] }, 
-      { id: "C-06N", name: "Kish.", category: "ついたて", tags: ["ゲーム"] },
-      { id: "C-01S", name: "ここあルーム", category: "ついたて", tags: ["AIキャラ"] }
+
+      { id: "C01-N", name: "もでっち", category: "中央通路", tags: ["AIキャラ"] },
+      { id: "C02-N", name: "リネ開発室", category: "中央通路", tags: ["AIキャラ"] },  
+      { id: "C03-N", name: "幕末パラダイム", category: "中央通路", tags: ["AIキャラ"] },  
+      { id: "C04-N", name: "gimu games", category: "中央通路", tags: ["ゲーム"] },
+      { id: "C05-N", name: "眞泥魚太", category: "中央通路", tags: ["ゲーム"] }, 
+      { id: "C06-N", name: "Kish.", category: "中央通路", tags: ["ゲーム"] },
+      { id: "C07-N", name: "MIUZKICHI Lab", category: "中央通路", tags: ["フィジカルAI"] },
+      { id: "C08-N", name: "PyLoT Robotics", category: "中央通路", tags: ["フィジカルAI"] },
+      { id: "C09-N", name: "Comimi", category: "中央通路", tags: ["アート展示I"] },
+      { id: "C10-N", name: "aratama 璞", category: "中央通路", tags: ["映像・アニメ"] },
+      { id: "C11-N", name: "uthree", category: "中央通路", tags: ["音楽・音声"]  },
+      { id: "C12-N", name: "つむぐとビーズちゃんのアトリエ", category: "中央通路", tags: ["創作ツール"]  },
+      { id: "C13-N", name: "じゅーんの帽子屋", category: "中央通路", tags: ["イラスト・グッズ"]  },
+    
+      { id: "C01-S", name: "ここあルーム", category: "中央通路", tags: ["AIキャラ"]  },
+      { id: "C02-S", name: "竹村也哉", category: "中央通路", tags: ["AIキャラ"]  },
+      { id: "C03-S", name: "atto games", category: "中央通路", tags: ["AIキャラ"]  },
+      { id: "C04-S", name: "Team NULL", category: "中央通路", tags: ["ゲーム"]  },
+      { id: "C05-S", name: "わいけい", category: "中央通路", tags: ["ゲーム"]  },
+      { id: "C06-S", name: "魎機二号", category: "中央通路", tags: ["ゲーム"]  },
+      { id: "C07-S", name: "おもちゃはっく", category: "中央通路", tags: ["フィジカルAI"]  },
+      { id: "C08-S", name: "ことだまプロジェクト", category: "中央通路", tags: ["アート展示"]  },
+      { id: "C09-S", name: "こんこん！ひみコン！", category: "中央通路", tags: ["映像・アニメ"]  },
+      { id: "C10-S", name: "Nero", category: "中央通路", tags: ["音楽・音声"]  },
+      { id: "C11-S", name: "お寿司AI個人開発室", category: "中央通路", tags: ["AITuber"]  },
+      { id: "C12-S", name: "CitF", category: "中央通路", tags: ["創作ツール"]  },  
+
+      { id: "E01-E", name: "ぴょん企画", category: "東側ポスター", tags: ["同人誌・書籍"]  }, 
+      { id: "E02-E", name: "ロボットサンドボックス", category: "東側ポスター", tags: ["同人誌・書籍"]  }, 
+      { id: "E03-E", name: "やさしいデザイン塾", category: "中央通路", tags: ["同人誌・書籍"]  }, 
+     
+      { id: "E01-W", name: "inuinull", category: "東側ポスター", tags: ["生活・アプリ", "女オタ"]  }, 
+      { id: "E02-W", name: "夜の顧客管理", category: "東側ポスター", tags: ["生活・アプリ"]  },
+      { id: "E03-W", name: "無銘", category: "中央通路", tags: ["生活・アプリ"]  },
+      { id: "E04-W", name: "LLLM.jp", category: "東側ポスター", tags: ["ローカルLLM"]  },
+      { id: "E05-W", name: "SPARK-座-", category: "東側ポスター", tags: ["ローカルLLM"]  },
+      { id: "E06-W", name: "野生の源内", category: "東側ポスター", tags: ["ローカルLLM"]  }, 
+      { id: "E07-W", name: "shi.", category: "東側ポスター", tags: ["ローカルLLM"]  }, 
+      { id: "E08-W", name: "六花牡丹", category: "東側ポスター", tags: ["研究"]  }, 
+      { id: "E09-W", name: "藤田和久", category: "東側ポスター", tags: ["研究"]  },
+      { id: "E10-W", name: "えびラボ", category: "東側ポスター", tags: ["研究"]  },
+        
+      { id: "S01-N", name: "太陽さんさん、ありさんさん！", category: "中央通路", tags: ["フィジカルAI"]  },
+      { id: "S01-S", name: "まぐれ工房", category: "中央通路", tags: ["創作ツール"]  },
+
+      { id: "W01-E", name: "NANASE ART", category: "東側ポスター", tags: ["イラスト・グッズ"]  },
+      { id: "W02-E", name: "Symphonophora", category: "東側ポスター", tags: ["イラスト・グッズ"]  },
+      { id: "W03-E", name: "ガニメデ工業", category: "東側ポスター", tags: ["イラスト・グッズ"]  },
+      { id: "W04-E", name: "haruharuAi Atelier", category: "東側ポスター", tags: ["イラスト・グッズ"]  },
+      { id: "W05-E", name: "NERUMARE WORKS", category: "東側ポスター", tags: ["イラスト・グッズ"]  },
+      { id: "W06-E", name: "No.524", category: "東側ポスター", tags: ["イラスト・グッズ"]  }, 
+      { id: "W07-E", name: "風紋工房", category: "東側ポスター", tags: ["イラスト・グッズ"]  },   
+      { id: "W08-E", name: "瑠璃色ノベル", category: "東側ポスター", tags: ["イラスト・グッズ"]  },    
+      { id: "W09-E", name: "ばぶちゃんねる", category: "東側ポスター", tags: ["イラスト・グッズ"]  },  
+      { id: "W10-E", name: "なみまのおと", category: "東側ポスター", tags: ["イラスト・グッズ"]  }
     ];
 
     const STORAGE_KEY = 'GEN_AI_EXPO_CHECKED_BOOTHS_V3';
@@ -774,11 +831,11 @@
       isVoiceEnabled = !isVoiceEnabled;
       if (isVoiceEnabled) {
         voiceToggleBtn.textContent = '音声: ON';
-        voiceToggleBtn.classList.add('active');
+        voiceToggleBtn.classList.add('voice-active');
         speak('音声読み上げをオンにしました。');
       } else {
         voiceToggleBtn.textContent = '音声: OFF';
-        voiceToggleBtn.classList.remove('active');
+        voiceToggleBtn.classList.remove('voice-active');
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
     });
