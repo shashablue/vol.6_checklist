@@ -845,12 +845,26 @@
     function speak(text) {
       if (!isVoiceEnabled) return;
       if (!('speechSynthesis' in window)) return;
+
+      // 既存の再生をキャンセル
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ja-JP';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+
+      // iOSのタイミングバグを防ぐため、50ミリ秒遅延させて再生する
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        // ブラウザが保持している日本語音声を明示的に割り当てる
+        const voices = window.speechSynthesis.getVoices();
+        const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+        if (jaVoice) {
+          utterance.voice = jaVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+      }, 50);
     }
 
     function updateCounter() {
