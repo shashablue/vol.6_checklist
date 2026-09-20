@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成AIなんでも展示会 ブース巡回チェッカー</title>
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #101726;
+      --bg-card-checked: #0b1c24;
+      --border-color: #1e2d4a;
+      --border-checked: #00ffcc44;
+      --accent-cyan: #00f0ff;
+      --accent-alert: #ff4b5c;
+      --accent-amber: #ffb703;
+      --accent-success: #00ffaa;
+      --text-main: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* 固定ヘッダー */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      padding: 12px 16px;
+    }
+
+    .app-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .app-title::before {
+      content: "■";
+      color: var(--accent-alert);
+      font-size: 0.7rem;
+    }
+
+    .counter-container {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .counter-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .counter-display {
+      font-size: 1.4rem;
+      font-weight: 900;
+      font-family: "Courier New", Courier, monospace;
+      color: #ffffff;
+    }
+
+    .counter-display .remaining-num {
+      color: var(--accent-amber);
+      text-shadow: 0 0 12px rgba(255, 183, 3, 0.6);
+      font-size: 1.8rem;
+    }
+
+    /* プログレスバー */
+    .progress-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: #1a2333;
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-success));
+      box-shadow: 0 0 8px var(--accent-cyan);
+      transition: width 0.3s ease;
+    }
+
+    /* フィルター */
+    .filter-container {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 12px 16px 4px;
+      scrollbar-width: none;
+    }
+    .filter-container::-webkit-scrollbar { display: none; }
+
+    .filter-btn {
+      background: #131d2e;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      border-radius: 4px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* 検索バー */
+    .search-container {
+      padding: 8px 16px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .search-input {
+      width: 100%;
+      background: #101726;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* メインコンテンツ */
+    .main-container {
+      padding: 12px 16px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ブースグリッド */
+    .booth-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 600px) {
+      .booth-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ブースカード */
+    .booth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.25s ease;
+    }
+
+    .booth-card.checked {
+      background: var(--bg-card-checked);
+      border-color: var(--border-checked);
+      border-left: 4px solid var(--accent-success);
+      opacity: 0.75;
+    }
+
+    .booth-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .booth-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .booth-id {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .booth-name {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .booth-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ボタン */
+    .check-btn {
+      background: #162438;
+      color: var(--accent-cyan);
+      border: 1px solid var(--accent-cyan);
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      min-width: 88px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .check-btn:active {
+      transform: scale(0.95);
+    }
+
+    .booth-card.checked .check-btn {
+      background: #0d382e;
+      color: var(--accent-success);
+      border-color: var(--accent-success);
+    }
+
+    /* フッター */
+    .footer-actions {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px dashed var(--accent-alert);
+      color: var(--accent-alert);
+      padding: 10px 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 固定ヘッダー -->
+  <header class="sticky-header">
+    <div class="app-title">生成AIなんでも展示会 vol.6</div>
+    <div class="counter-container">
+      <div class="counter-label">未確認ブース</div>
+      <button id="voiceToggleBtn" class="filter-btn active" style="margin-left: auto;">🔊 音声: ON</button>
+      <div class="counter-display">
+        残り <span id="remainingCount" class="remaining-num">0</span> / <span id="totalCount">0</span>
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div id="progressBar" class="progress-bar-fill"></div>
+    </div>
+  </header>
+
+  <!-- 絞り込みフィルター -->
+  <div class="filter-container" id="filterContainer">
+    <button class="filter-btn active" data-filter="all">全出展者</button>
+    <button class="filter-btn" data-filter="unvisited">未確認のみ</button>
+  </div>
+
+  <!-- 検索バー -->
+  <div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーで検索...">
+  </div>
+
+  <!-- ブースリスト -->
+  <main class="main-container">
+    <div class="booth-list" id="boothList"></div>
+
+    <div class="footer-actions">
+      <button id="resetBtn" class="reset-btn">⚠ 巡回データを初期化（全リセット）</button>
+    </div>
+  </main>
+
+  <script>
+// 『生成AIなんでも展示会 Vol.6』出展者マスターデータ（全241組 完全統合版）
+
+const boothMasterData = [
+  // --- 一般出展（枝番削除・ID昇順） ---
+  { id: "B-1/B-2", name: "めぐチャンネル", category: "一般出展", tags: ["AIキャラ", "創作ツール", "ローカルLLM"] },
+  { id: "B-3/B-4", name: "もでっち", category: "一般出展", tags: ["AIキャラ", "エージェント", "フィジカルAI"] },
+  { id: "B-3/B-4", name: "あやかとこてまる", category: "一般出展", tags: ["AIキャラ", "ローカルLLM"] },
+  { id: "B-5/B-6", name: "リネ開発室", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-5/B-6", name: "からくりワールド", category: "一般出展", tags: ["AIキャラ", "エージェント"] },
+  { id: "B-7/B-8", name: "まどろみ電算室", category: "一般出展", tags: ["AIキャラ", "エージェント"] },
+  { id: "B-9/B-10", name: "Kinemagic Studio", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-9/B-10", name: "Youmo", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-11/B-12", name: "ぱそぴ屋", category: "一般出展", tags: ["AIキャラ", "ゲーム"] },
+  { id: "B-11/B-12", name: "ウエハラケンイチ", category: "一般出展", tags: ["AIキャラ", "アート展示"] },
+  { id: "B-13/B-14", name: "GPTLiver Project", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-13/B-14", name: "Lumina", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-15/B-16", name: "SAIVerse開発", category: "一般出展", tags: ["AIキャラ", "エージェント"] },
+  { id: "B-15/B-16", name: "コーギーチーズ", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-17/B-18", name: "ここあルーム", category: "一般出展", tags: ["AIキャラ", "エージェント", "イラスト・グッズ"] },
+  { id: "B-17/B-18", name: "とり昌", category: "一般出展", tags: ["AIキャラ", "生活・アプリ"] },
+  { id: "B-19/B-20", name: "猫飼人", category: "一般出展", tags: ["AIキャラ", "研究"] },
+  { id: "B-19/B-20", name: "一ノ瀬凜", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-21/B-22", name: "AIなんかつくるぞ会", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-21/B-22", name: "むすひAI", category: "一般出展", tags: ["AIキャラ", "フィジカルAI"] },
+  { id: "B-23/B-24", name: "KyaraFlip", category: "一般出展", tags: ["AIキャラ", "研究"] },
+  { id: "B-23/B-24", name: "BLUE", category: "一般出展", tags: ["AIキャラ", "エージェント"] },
+  { id: "B-25/B-26", name: "ふんわりAIラボ", category: "一般出展", tags: ["AIキャラ", "エージェント"] },
+  { id: "B-25/B-26", name: "幕末パラダイム", category: "一般出展", tags: ["AIキャラ", "同人誌・書籍"] },
+  { id: "B-27/B-28", name: "くりやま", category: "一般出展", tags: ["AIキャラ", "AITuber"] },
+  { id: "B-27/B-28", name: "LibraryStudio", category: "一般出展", tags: ["AIキャラ", "生活・アプリ"] },
+  { id: "B-29/B-30", name: "GarbageCollection", category: "一般出展", tags: ["生活・アプリ", "同人誌・書籍"] },
+  { id: "B-29/B-30", name: "ペイケルチャンネル東京出張所", category: "一般出展", tags: ["AIキャラ"] },
+  { id: "B-31/B-32", name: "satouyszn", category: "一般出展", tags: ["AIキャラ", "生活・アプリ"] },
+  { id: "C-1/C-2", name: "千凜", category: "一般出展", tags: ["ゲーム", "アート展示"] },
+  { id: "C03-S", name: "atto games", category: "一般出展", tags: ["AIキャラ", "ゲーム"] },
+  { id: "C-3/C-4", name: "gimu games", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-3/C-4", name: "Maoku", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-5/C-6", name: "Team NULL", category: "一般出展", tags: ["ゲーム", "電子工作"] },
+  { id: "C-5/C-6", name: "魎機二号", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-7/C-8", name: "眞泥魚太", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-7/C-8", name: "ふうらい堂", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C08-N", name: "PyLoT Robotics", category: "一般出展", tags: ["フィジカルAI", "エージェント"] },
+  { id: "C-9/C-10", name: "Dipper Game", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-9/C-10", name: "mini robo", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-11/C-12", name: "俺バトラー", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-11/C-12", name: "ゆるいモノづくり会", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C12-S", name: "CitF", category: "一般出展", tags: ["創作ツール", "AITuber"] },
+  { id: "C-13/C-14", name: "Quiet Moon", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-13/C-14", name: "ROUT_DEV", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-15/C-16", name: "ぬこぬこ", category: "一般出展", tags: [] },
+  { id: "C-15/C-16", name: "うんめいや", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-17/C-18", name: "びわ", category: "一般出展", tags: ["ゲーム", "AIキャラ"] },
+  { id: "C-17/C-18", name: "モヒにゃぱん", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-19/C-20", name: "働いても負けない", category: "一般出展", tags: ["ゲーム", "生活・アプリ"] },
+  { id: "C-19/C-20", name: "上原さん", category: "一般出展", tags: ["ゲーム", "エージェント"] },
+  { id: "C-21/C-22", name: "わいけい", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-21/C-22", name: "Kish.", category: "一般出展", tags: ["ゲーム", "映像・アニメ", "音楽・音声"] },
+  { id: "C-23/C-24", name: "どんまプロジェクト", category: "一般出展", tags: ["ゲーム", "AITuber"] },
+  { id: "C-23/C-24", name: "さわえみか", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-25/C-26", name: "つみれ書房", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-25/C-26", name: "つみき", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-27/C-28", name: "Akari", category: "一般出展", tags: ["ゲーム", "同人誌・書籍"] },
+  { id: "C-27/C-28", name: "NARU未来創造部", category: "一般出展", tags: ["ゲーム"] },
+  { id: "C-29/C-30", name: "螺旋編集部", category: "一般出展", tags: [] },
+  { id: "D-1/D-2", name: "yunda", category: "一般出展", tags: ["フィジカルAI", "アート展示"] },
+  { id: "D-1/D-2", name: "Riti", category: "一般出展", tags: ["フィジカルAI"] },
+  { id: "D-3/D-4", name: "A-Uta Works", category: "一般出展", tags: ["フィジカルAI", "AIキャラ"] },
+  { id: "D-3/D-4", name: "toyandai", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-5/D-6", name: "9zo", category: "一般出展", tags: ["アート展示"] },
+  { id: "D-5/D-6", name: "未明設計室", category: "一般出展", tags: ["フィジカルAI", "ローカルLLM"] },
+  { id: "D-7/D-8", name: "とよふく", category: "一般出展", tags: ["フィジカルAI", "AIキャラ"] },
+  { id: "D-9/D-10", name: "ChatPCBA / ROM VOMITTER", category: "一般出展", tags: ["電子工作", "エージェント"] },
+  { id: "D-9/D-10", name: "Comimi", category: "一般出展", tags: ["アート展示"] },
+  { id: "D-11/D-12", name: "楠川技研", category: "一般出展", tags: ["電子工作", "エージェント"] },
+  { id: "D-11/D-12", name: "ゆるフィジカルAI", category: "一般出展", tags: ["フィジカルAI", "生活・アプリ"] },
+  { id: "D-13/D-14", name: "無生物かわいい研究会", category: "一般出展", tags: ["アート展示", "映像・アニメ"] },
+  { id: "D-13/D-14", name: "AIデバイス研究会", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-15/D-16", name: "道具棚", category: "一般出展", tags: [] },
+  { id: "D-15/D-16", name: "てんかう", category: "一般出展", tags: ["フィジカルAI", "研究"] },
+  { id: "D-17/D-18", name: "水豚書房 工作部", category: "一般出展", tags: ["フィジカルAI", "AIキャラ", "エージェント"] },
+  { id: "D-17/D-18", name: "あさひな", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-19/D-20", name: "太陽さんさん、ありさんさん！", category: "一般出展", tags: ["フィジカルAI", "AIキャラ"] },
+  { id: "D-19/D-20", name: "KEN", category: "一般出展", tags: ["アート展示"] },
+  { id: "D-21/D-22", name: "ことだまプロジェクト", category: "一般出展", tags: ["アート展示"] },
+  { id: "D-21/D-22", name: "AIドパガキ🧠💦", category: "一般出展", tags: ["フィジカルAI", "アート展示"] },
+  { id: "D-23/D-24", name: "うな技研", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-23/D-24", name: "しっぽのある暮らし", category: "一般出展", tags: ["フィジカルAI", "エージェント", "映像・アニメ"] },
+  { id: "D-25/D-26", name: "MIUZKICHI Lab", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-25/D-26", name: "yuri", category: "一般出展", tags: ["フィジカルAI"] },
+  { id: "D-27/D-28", name: "Flexiblue", category: "一般出展", tags: ["アート展示"] },
+  { id: "D-27/D-28", name: "おもちゃはっく", category: "一般出展", tags: ["フィジカルAI", "電子工作"] },
+  { id: "D-29/D-30", name: "BE-NNO", category: "一般出展", tags: [] },
+  { id: "E-1/E-2", name: "NIKU STUDIO", category: "一般出展", tags: ["映像・アニメ", "イラスト・グッズ"] },
+  { id: "E03-W", name: "無銘", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "E-3/E-4", name: "aratama 璞", category: "一般出展", tags: ["映像・アニメ", "音楽・音声", "アート展示"] },
+  { id: "E-5/E-6", name: "ZIKAN Products", category: "一般出展", tags: ["映像・アニメ"] },
+  { id: "E-5/E-6", name: "こんこん！ひみコン！", category: "一般出展", tags: ["映像・アニメ", "ゲーム"] },
+  { id: "E-7/E-8", name: "FinishFish", category: "一般出展", tags: ["映像・アニメ"] },
+  { id: "E-7/E-8", name: "きのこ先輩", category: "一般出展", tags: ["音楽・音声"] },
+  { id: "E07-W", name: "shi.", category: "一般出展", tags: ["ローカルLLM", "研究"] },
+  { id: "E08-W", name: "六花牡丹", category: "一般出展", tags: ["研究"] },
+  { id: "E-9/E-10", name: "新清士の3D立体視", category: "一般出展", tags: ["映像・アニメ", "アート展示"] },
+  { id: "E-9/E-10", name: "しずおか国際映像クリエイティブチャレンジ実行委員会", category: "一般出展", tags: ["映像・アニメ", "創作ツール"] },
+  { id: "E09-W", name: "藤田和久", category: "一般出展", tags: ["研究"] },
+  { id: "E10-W", name: "えびラボ", category: "一般出展", tags: ["研究"] },
+  { id: "E-11/E-12", name: "テクテク", category: "一般出展", tags: [] },
+  { id: "E-11/E-12", name: "電脳AIクラブ@ヨシダカゲチカ", category: "一般出展", tags: ["映像・アニメ", "ゲーム"] },
+  { id: "E-13/E-14", name: "朱護重工", category: "一般出展", tags: [] },
+  { id: "E-13/E-14", name: "Noa.h", category: "一般出展", tags: [] },
+  { id: "E-15/E-16", name: "たいよっぷ", category: "一般出展", tags: [] },
+  { id: "E-15/E-16", name: "ワクワクサンダーボルト", category: "一般出展", tags: [] },
+  { id: "E-17/E-18", name: "Marble Logic Lab", category: "一般出展", tags: ["音楽・音声"] },
+  { id: "E-17/E-18", name: "早乙女映像研究所", category: "一般出展", tags: ["映像・アニメ", "創作ツール"] },
+  { id: "E-19/E-20", name: "AI Creative Base「Studio Galcezon」", category: "一般出展", tags: ["映像・アニメ", "音楽・音声"] },
+  { id: "E-19/E-20", name: "Nero", category: "一般出展", tags: ["音楽・音声", "創作ツール"] },
+  { id: "E-21/E-22", name: "ゆうっちサブカル本舗", category: "一般出展", tags: ["音楽・音声", "創作ツール"] },
+  { id: "E-21/E-22", name: "RESONAL", category: "一般出展", tags: ["音楽・音声", "AIキャラ"] },
+  { id: "E-23/E-24", name: "CYBAROCCO（サイバロッコ）", category: "一般出展", tags: ["映像・アニメ", "音楽・音声", "創作ツール"] },
+  { id: "E-23/E-24", name: "uthree", category: "一般出展", tags: ["音楽・音声", "創作ツール", "研究"] },
+  { id: "E-25/E-26", name: "toMo", category: "一般出展", tags: [] },
+  { id: "E-25/E-26", name: "HiroPa（Open）", category: "一般出展", tags: [] },
+  { id: "E-27/E-28", name: "ぱぷりか炒め", category: "一般出展", tags: [] },
+  { id: "E-27/E-28", name: "未定", category: "一般出展", tags: [] },
+  { id: "E-29/E-30", name: "ToPo", category: "一般出展", tags: [] },
+  { id: "F-1/F-2", name: "英国ハムスター", category: "一般出展", tags: ["エージェント"] },
+  { id: "F-1/F-2", name: "創作実験HIRO", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-3/F-4", name: "PoTeto", category: "一般出展", tags: ["AITuber", "AIキャラ"] },
+  { id: "F-3/F-4", name: "きらっち", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-5/F-6", name: "つむぐとビーズちゃんのアトリエ", category: "一般出展", tags: ["創作ツール", "生活・アプリ", "AIキャラ"] },
+  { id: "F-7/F-8", name: "池田暁子", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-7/F-8", name: "不働漫画研究会", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-9/F-10", name: "癒色えも", category: "一般出展", tags: ["AITuber", "AIキャラ"] },
+  { id: "F-9/F-10", name: "お寿司AI個人開発室", category: "一般出展", tags: ["AITuber", "ゲーム"] },
+  { id: "F-11/F-12", name: "まぐれ工房", category: "一般出展", tags: ["創作ツール", "AIキャラ", "ゲーム"] },
+  { id: "F-11/F-12", name: "Aperture lab", category: "一般出展", tags: ["創作ツール", "音楽・音声"] },
+  { id: "F-13/F-14", name: "あわいろ工房", category: "一般出展", tags: ["創作ツール", "AITuber"] },
+  { id: "F-13/F-14", name: "たなちゅー", category: "一般出展", tags: ["エージェント", "生活・アプリ"] },
+  { id: "F-15/F-16", name: "UEC AI-Vtuber", category: "一般出展", tags: ["AITuber", "AIキャラ"] },
+  { id: "F-15/F-16", name: "さがと愉快な仲間たち", category: "一般出展", tags: ["エージェント", "フィジカルAI", "ローカルLLM"] },
+  { id: "F-17/F-18", name: "Phenotype", category: "一般出展", tags: ["創作ツール", "映像・アニメ"] },
+  { id: "F-17/F-18", name: "憲明冶", category: "一般出展", tags: ["AITuber", "ローカルLLM"] },
+  { id: "F-19/F-20", name: "DSKR", category: "一般出展", tags: ["AITuber", "AIキャラ"] },
+  { id: "F-19/F-20", name: "Masa", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-21/F-22", name: "びーぐる☆わーくす", category: "一般出展", tags: ["エージェント", "生活・アプリ"] },
+  { id: "F-21/F-22", name: "なし", category: "一般出展", tags: ["エージェント", "AIキャラ"] },
+  { id: "F-23/F-24", name: "ATOM-BOX", category: "一般出展", tags: ["創作ツール", "映像・アニメ"] },
+  { id: "F-23/F-24", name: "Just Alternative.", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-25/F-26", name: "とりにく", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-25/F-26", name: "行けたら行くわ", category: "一般出展", tags: ["エージェント", "AIキャラ"] },
+  { id: "F-27/F-28", name: "kazuya_bros", category: "一般出展", tags: ["創作ツール"] },
+  { id: "F-27/F-28", name: "haru-lab", category: "一般出展", tags: ["エージェント", "AIキャラ", "研究"] },
+  { id: "F-29/F-30", name: "茶臼山りんご園", category: "一般出展", tags: ["AITuber", "AIキャラ", "ゲーム"] },
+  { id: "F-29/F-30", name: "クリレア", category: "一般出展", tags: ["エージェント"] },
+  { id: "F-31/F-32", name: "自動化研究会", category: "一般出展", tags: ["エージェント", "電子工作"] },
+  { id: "F-31/F-32", name: "tobidas", category: "一般出展", tags: ["創作ツール"] },
+  { id: "G-1/G-2", name: "闇鍋企画二号", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-3/G-4", name: "じゅーんの帽子屋", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-3/G-4", name: "TeamWhiteBox", category: "一般出展", tags: ["創作ツール", "ゲーム"] },
+  { id: "G-5/G-6", name: "team-JOY", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-5/G-6", name: "電脳武侠堂", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-7/G-8", name: "Symphonophora", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-7/G-8", name: "ガニメデ工業", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-9/G-10", name: "NEWライト", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-9/G-10", name: "No.524", category: "一般出展", tags: ["イラスト・グッズ", "ゲーム"] },
+  { id: "G-11/G-12", name: "nekousagi_art", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-13/G-14", name: "福田京平", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-13/G-14", name: "韓彩（かんさい）", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-15/G-16", name: "鳥鳥鳥鳥", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "G-15/G-16", name: "瑠璃色ノベル", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-17/G-18", name: "浮草寒露堂+aoca studio", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-17/G-18", name: "Nyanvas", category: "一般出展", tags: ["イラスト・グッズ", "生活・アプリ"] },
+  { id: "G-19/G-20", name: "NANASE ART", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-21/G-22", name: "haruharuAi Atelier", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-21/G-22", name: "NERUMARE WORKS", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-23/G-24", name: "takio koizumi × HAL", category: "一般出展", tags: ["イラスト・グッズ", "創作ツール"] },
+  { id: "G-23/G-24", name: "ちょめ屋", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-25/G-26", name: "てにとる堂", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-25/G-26", name: "Eight Million Company", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-27/G-28", name: "風紋工房", category: "一般出展", tags: ["イラスト・グッズ", "同人誌・書籍"] },
+  { id: "G-27/G-28", name: "御城建設蕪式会社", category: "一般出展", tags: ["イラスト・グッズ", "音楽・音声", "エージェント"] },
+  { id: "G-29/G-30", name: "SABAKAN project", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-29/G-30", name: "ばぶちゃんねる", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "G-31/G-32", name: "赤獅子屋", category: "一般出展", tags: ["イラスト・グッズ", "映像・アニメ"] },
+  { id: "G-31/G-32", name: "ギヤマシン(gear_machine)", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "H-1/H-2", name: "ヤオヨロズビット", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-3/H-4", name: "Hachiware-Labs", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-3/H-4", name: "まっちまー", category: "一般出展", tags: ["創作ツール"] },
+  { id: "H-5/H-6", name: "ほーきー(Hawkie)", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-5/H-6", name: "トリキジの部屋", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-7/H-8", name: "TAKIBI lab", category: "一般出展", tags: ["生活・アプリ", "アート展示"] },
+  { id: "H-7/H-8", name: "みかこ@オルゴールシティ E.", category: "一般出展", tags: ["同人誌・書籍", "イラスト・グッズ", "映像・アニメ", "女オタ"] },
+  { id: "H-9/H-10", name: "Creative893", category: "一般出展", tags: ["生活・アプリ", "イラスト・グッズ", "女オタ"] },
+  { id: "H-9/H-10", name: "inuinull", category: "一般出展", tags: ["生活・アプリ", "イラスト・グッズ", "同人誌・書籍", "女オタ"] },
+  { id: "H-11/H-12", name: "キウイ", category: "一般出展", tags: ["イラスト・グッズ", "女オタ"] },
+  { id: "H-11/H-12", name: "白神つづ璃", category: "一般出展", tags: ["AIキャラ", "女オタ"] },
+  { id: "H-13/H-14", name: "らて", category: "一般出展", tags: ["生活・アプリ", "エージェント"] },
+  { id: "H-13/H-14", name: "でんしょう堂", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-15/H-16", name: "余暇の遊び場", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-15/H-16", name: "かわぽ！", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-17/H-18", name: "Maji", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-17/H-18", name: "真神 レニ丸", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "H-19/H-20", name: "AIで植物を見守ろうの会", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-19/H-20", name: "aqua-data.link", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-21/H-22", name: "シソリン・カズオの世界", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-21/H-22", name: "hoge", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-23/H-24", name: "EduLinux Project", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-25/H-26", name: "スナガクサークル", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-25/H-26", name: "るんるん", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-27/H-28", name: "夜の顧客管理", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "H-27/H-28", name: "ねぎれもん", category: "一般出展", tags: ["生活・アプリ"] },
+  { id: "I-1/I-2", name: "super big dog", category: "一般出展", tags: ["ローカルLLM", "研究"] },
+  { id: "I-1/I-2", name: "nadare", category: "一般出展", tags: ["ローカルLLM", "音楽・音声"] },
+  { id: "I-3/I-4", name: "金のニワトリ工房", category: "一般出展", tags: ["研究"] },
+  { id: "I-3/I-4", name: "あきたねこ", category: "一般出展", tags: ["研究"] },
+  { id: "I-5/I-6", name: "LLLM.jp", category: "一般出展", tags: ["ローカルLLM"] },
+  { id: "I-7/I-8", name: "SPARK-座-", category: "一般出展", tags: ["ローカルLLM", "アート展示", "研究"] },
+  { id: "I-7/I-8", name: "t.toda", category: "一般出展", tags: ["研究", "ローカルLLM"] },
+  { id: "I-9/I-10", name: "ふにぷろ", category: "一般出展", tags: ["研究"] },
+  { id: "I-9/I-10", name: "waired.ai", category: "一般出展", tags: ["ローカルLLM"] },
+  { id: "I-11/I-12", name: "tmp circle", category: "一般出展", tags: ["研究"] },
+  { id: "I-11/I-12", name: "他人ハウス", category: "一般出展", tags: ["研究"] },
+  { id: "I-13/I-14", name: "野生の源内", category: "一般出展", tags: ["ローカルLLM"] },
+  { id: "I-13/I-14", name: "未来予知", category: "一般出展", tags: ["研究"] },
+  { id: "I-15/I-16", name: "Ahwenu's Coffee", category: "一般出展", tags: ["ローカルLLM"] },
+  { id: "I-15/I-16", name: "れいやーど", category: "一般出展", tags: ["研究"] },
+  { id: "W10-E", name: "なみまのおと", category: "一般出展", tags: ["イラスト・グッズ"] },
+  { id: "Z-1/Z-2", name: "暗黒●●結社", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-3/Z-4", name: "スタジオ真榊", category: "一般出展", tags: ["同人誌・書籍", "創作ツール"] },
+  { id: "Z-5/Z-6", name: "mae616", category: "一般出展", tags: ["同人誌・書籍", "AIキャラ", "フィジカルAI", "ゲーム", "イラスト・グッズ"] },
+  { id: "Z-5/Z-6", name: "wai55555", category: "一般出展", tags: ["研究", "創作ツール"] },
+  { id: "Z-7/Z-8", name: "yasuna", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-7/Z-8", name: "胸肉", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-9/Z-10", name: "ScarletEchoes", category: "一般出展", tags: ["同人誌・書籍", "映像・アニメ"] },
+  { id: "Z-9/Z-10", name: "ぴょん企画", category: "一般出展", tags: ["同人誌・書籍", "イラスト・グッズ"] },
+  { id: "Z-11/Z-12", name: "Riin's Workspace", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-11/Z-12", name: "AzureAbyss", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-13/Z-14", name: "ロボットサンドボックス", category: "一般出展", tags: ["同人誌・書籍", "フィジカルAI", "ゲーム"] },
+  { id: "Z-13/Z-14", name: "Nリウム", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-15/Z-16", name: "wakadori.me", category: "一般出展", tags: ["生活・アプリ", "エージェント", "創作ツール"] },
+  { id: "Z-15/Z-16", name: "やさしいデザイン塾", category: "一般出展", tags: ["同人誌・書籍", "AITuber"] },
+  { id: "Z-17/Z-18", name: "LocalExpress(各駅急行)", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-17/Z-18", name: "ととのん", category: "一般出展", tags: ["同人誌・書籍"] },
+  { id: "Z-19/Z-20", name: "CROSSNEXT", category: "一般出展", tags: ["同人誌・書籍", "イラスト・グッズ"] },
+  { id: "Z-19/Z-20", name: "メロウスフィア", category: "一般出展", tags: ["同人誌・書籍"] }
+];
+
+    const STORAGE_KEY = 'GEN_AI_EXPO_CHECKED_BOOTHS_V3';
+    let checkedBoothIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    const boothListEl = document.getElementById('boothList');
+    const remainingCountEl = document.getElementById('remainingCount');
+    const totalCountEl = document.getElementById('totalCount');
+    const progressBarEl = document.getElementById('progressBar');
+    const resetBtn = document.getElementById('resetBtn');
+    const filterContainer = document.getElementById('filterContainer');
+    const searchInput = document.getElementById('searchInput');
+    // 音声ON/OFFの状態（デフォルトON）
+let isVoiceEnabled = true;
+const voiceToggleBtn = document.getElementById('voiceToggleBtn');
+
+// 音声トグルボタンのクリックイベント
+voiceToggleBtn.addEventListener('click', () => {
+  isVoiceEnabled = !isVoiceEnabled;
+  if (isVoiceEnabled) {
+    voiceToggleBtn.textContent = '🔊 音声: ON';
+    voiceToggleBtn.classList.add('active');
+    speak('音声読み上げをオンにしました。');
+  } else {
+    voiceToggleBtn.textContent = '🔇 音声: OFF';
+    voiceToggleBtn.classList.remove('active');
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+});
+
+    // 音声読み上げ (Web Speech API)
+    function speak(text) {
+  if (!isVoiceEnabled) return; // 音声OFFのときは再生しない
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 1.15;
+  utterance.pitch = 1.0;
+  window.speechSynthesis.speak(utterance);
+    }
+
+    // カウント更新
+    function updateCounter() {
+      const total = boothMasterData.length;
+      const checkedCount = checkedBoothIds.size;
+      const remaining = total - checkedCount;
+
+      totalCountEl.textContent = total;
+      remainingCountEl.textContent = remaining;
+
+      const progressPercent = total > 0 ? (checkedCount / total) * 100 : 0;
+      progressBarEl.style.width = `${progressPercent}%`;
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(checkedBoothIds)));
+    }
+
+    // チェック切り替え
+function toggleBooth(id, name) {
+  // ブースIDと出展者名を組み合わせて一意のキーを作成（例: "F-3/F-4_PoTeto"）
+  const key = `${id}_${name}`;
+  
+  // 対象の出展者データを特定
+  const booth = boothMasterData.find(b => b.id === id && b.name === name);
+  const isChecked = checkedBoothIds.has(key);
+
+  if (isChecked) {
+    checkedBoothIds.delete(key);
+    const remaining = boothMasterData.length - checkedBoothIds.size;
+    speak(`${booth ? booth.name : name}の確認を解除しました。残り${remaining}箇所です。`);
+  } else {
+    checkedBoothIds.add(key);
+    const remaining = boothMasterData.length - checkedBoothIds.size;
+    if (remaining === 0) {
+      speak(`全ブースの確認が完了しました！お疲れ様でした！`);
+    } else {
+      speak(`${booth ? booth.name : name}確認！残り${remaining}箇所です。`);
+    }
+  }
+
+      saveState();
+      updateCounter();
+      renderBooths();
+    }
+
+// ブース描画
+function renderBooths() {
+  boothListEl.innerHTML = '';
+
+  const filteredBooths = boothMasterData.filter(booth => {
+    // ブースIDと出展者名を組み合わせた一意のキーを作成
+    const itemKey = `${booth.id}_${booth.name}`;
+
+    // フィルター判定（一意のキーで未訪問チェック）
+    if (currentFilter === 'unvisited' && checkedBoothIds.has(itemKey)) return false;
+    
+    // 検索キーワード判定
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      const matchName = booth.name.toLowerCase().includes(q);
+      const matchId = booth.id.toLowerCase().includes(q);
+      const matchCategory = booth.category ? booth.category.toLowerCase().includes(q) : false;
+      const matchTags = booth.tags ? booth.tags.some(tag => tag.toLowerCase().includes(q)) : false;
+      return matchName || matchId || matchCategory || matchTags;
+    }
+
+    return true;
+  });
+
+  if (filteredBooths.length === 0) {
+    boothListEl.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">該当する出展者が見つかりません</div>`;
+    return;
+  }
+
+  filteredBooths.forEach(booth => {
+    // 一意のキーで判定とボタン呼び出しを行う
+    const itemKey = `${booth.id}_${booth.name}`;
+    const isChecked = checkedBoothIds.has(itemKey);
+
+    // シングルクォート等によるJS構文エラーを防ぐエスケープ処理
+    const safeName = booth.name.replace(/'/g, "\\'");
+
+    // タグ表示用のテキスト作成（タグがない場合はカテゴリー名を表示）
+    const tagsText = booth.tags && booth.tags.length > 0 ? booth.tags.join(', ') : booth.category;
+
+    const card = document.createElement('div');
+    card.className = `booth-card ${isChecked ? 'checked' : ''}`;
+
+    card.innerHTML = `
+      <div class="booth-info">
+        <div class="booth-header">
+          <span class="booth-id">${booth.id}</span>
+        </div>
+        <div class="booth-name" title="${booth.name}">${booth.name}</div>
+        <div class="booth-desc" title="${tagsText}">${tagsText}</div>
+      </div>
+      <button class="check-btn" onclick="toggleBooth('${booth.id}', '${safeName}')">
+        ${isChecked ? '✓ 確認済' : '確認する'}
+      </button>
+    `;
+    boothListEl.appendChild(card);
+  });
+}
+    // フィルターイベント
+    filterContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-btn')) {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-filter');
+        renderBooths();
+      }
+    });
+
+    // 検索イベント
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderBooths();
+    });
+
+    // リセットイベント
+    resetBtn.addEventListener('click', () => {
+      if (confirm('巡回チェックをすべてリセットしますか？')) {
+        checkedBoothIds.clear();
+        saveState();
+        updateCounter();
+        renderBooths();
+        speak('巡回データを初期化しました。');
+      }
+    });
+
+    // 初期実行
+    updateCounter();
+    renderBooths();
+  </script>
+</body>
+</html>
