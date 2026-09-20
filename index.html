@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>生成AIなんでも展示会 ブース巡回チェッカー</title>
+  <title>生成AIなんでも展示会 巡回チェック</title>
   <style>
     :root {
       --bg-dark: #090d16;
@@ -44,7 +44,7 @@
       backdrop-filter: blur(12px);
       border-bottom: 2px solid var(--border-color);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-      padding: 10px 12px;
+      padding: 10px 12px 12px; /* ★下部パディングを12pxに調整 */
     }
     
     .header-top {
@@ -123,15 +123,36 @@
       transition: width 0.3s ease;
     }
 
-    /* フィルター */
-    .filter-container {
+ 
+/* フィルター */
+.filter-container {
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding: 8px 0 4px; /* 余白を微調整 */
+      padding: 4px 0;
       scrollbar-width: none;
+      flex-shrink: 0;
     }
-    .filter-container::-webkit-scrollbar { display: none; }
+
+    /* 検索クリアボタンの通常時（未使用時の薄い状態） */
+    #clearSearchBtn {
+      border-color: var(--border-color) !important;
+      color: var(--text-muted) !important;
+      transition: all 0.2s ease;
+    }
+
+    /* 検索クリアボタンにホバーしたとき（ほんのり明るく） */
+    #clearSearchBtn:hover {
+      border-color: rgba(0, 255, 170, 0.4) !important;
+      color: var(--text-main) !important;
+    }
+
+    /* クリック時の一瞬の発光（アクティブ演出） */
+    #clearSearchBtn.active-flash {
+      border-color: var(--accent-success) !important;
+      color: var(--accent-success) !important;
+      box-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+    }
 
     .filter-btn {
       background: #131d2e;
@@ -154,9 +175,8 @@
 
     /* 検索バー */
     .search-container {
-      padding: 6px 0 0; /* ヘッダー内に収まるよう左右パディングを調整 */
-      max-width: 800px;
-      margin: 0 auto;
+      padding: 4px 0;
+      width: 100%;
     }
 
     .search-input {
@@ -169,6 +189,25 @@
       font-size: 0.9rem;
       outline: none;
     }
+
+   /* PC・タブレットなど幅が広い画面用の横並びレイアウト */
+   @media (min-width: 640px) {
+      .header-bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* ★左寄せにして検索クリアボタンの隣に配置 */
+        gap: 12px;                  /* ★ボタンと検索バーの間の余白 */
+        margin-top: 6px;
+      }
+
+      .search-container {
+        padding: 0;
+        flex: 1;           /* ★検索クリアの隣から右側の空きスペースを活用して広がる */
+        max-width: 400px;  /* ★広がりすぎないよう上限を設定（お好みで調整可） */
+      }
+    }
+
+
     /* スマホ（画面幅768px以下）の時だけ拡大防止のために16pxにする */
     @media (max-width: 768px) {
   .search-input {
@@ -443,7 +482,7 @@
     </div>
 
     <div class="counter-container">
-      <div class="counter-label">未確認ブース</div>
+      <div class="counter-label">未巡回ブース</div>
       <div class="counter-display">
         残り <span id="remainingCount" class="remaining-num">0</span> / <span id="totalCount">0</span>
       </div>
@@ -453,16 +492,20 @@
     </div>
   
 
-  <!-- 絞り込みフィルター -->
-  <div class="filter-container" id="filterContainer">
-    <button class="filter-btn active" data-filter="all">全出展者</button>
-    <button class="filter-btn" data-filter="unvisited">未確認のみ</button>
-  </div>
+  <!-- フィルターと検索バーを横並びにするための囲み要素を追加 -->
+    <div class="header-bottom-row">
+      <!-- 絞り込みフィルター -->
+      <div class="filter-container" id="filterContainer">
+        <button class="filter-btn active" data-filter="all">全出展者</button>
+        <button class="filter-btn" data-filter="unvisited">未巡回のみ</button>
+        <button class="filter-btn" id="clearSearchBtn">検索クリア</button>
+      </div>
 
-  <!-- 検索バー -->
-  <div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーワードで検索...">
-  </div>
+      <!-- 検索バー -->
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="出展者名やキーワードで検索...">
+      </div>
+    </div>
 
 </header>
 
@@ -1054,18 +1097,34 @@
     }
 
     filterContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('filter-btn')) {
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        currentFilter = e.target.getAttribute('data-filter');
-        renderBooths();
-      }
-    });
-
+  // data-filter 属性を持つボタンだけアクティブ切り替えを行う
+  if (e.target.classList.contains('filter-btn') && e.target.hasAttribute('data-filter')) {
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => btn.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.getAttribute('data-filter');
+    renderBooths();
+  }
+});
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       renderBooths();
     });
+
+// 検索クリアボタンの処理
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        renderBooths();
+
+        // クリック時の一瞬の発光アニメーション
+        clearSearchBtn.classList.add('active-flash');
+        setTimeout(() => {
+          clearSearchBtn.classList.remove('active-flash');
+        }, 300); // 0.3秒後に元の薄い状態に戻る
+      });
+    }
 
     // リセットモーダル要素
     const resetModal = document.getElementById('resetModal');
